@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zn-ch">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pr</title>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <script defer src="./js/index.js"></script>
+    <script defer src="./js/layer/videoLayer.js"></script>
+    <script defer src="./js/bind.js"></script>
+    <script>
+        window.URL = window.URL || window.webkitURL;
+        window.onload = () => {
+            /** @type {HTMLCanvasElement} */ 
+            let tools = new Bind();
+        }
+    </script>
+</head>
+<body oncontextmenu="return false" onselectstart="return false">
+    <div id="Layout">
+        <div id="canvasLayout"></div>
+        <div id="manipulationLayout">
+            <div id="inputLayout">
+                <input type="file" id="inputVido" accept="video/*">
+            </div>
+            <div id="buttonLayout">
+                <button id="demo">wsgefae</button>
+                <button id="play1">play</button>
+                <button id="pause">pause</button>
+                <button id="export">export</button> 
+                <button id="recording">recording</button>
+                <button id="stop">stop</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
