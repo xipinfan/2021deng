@@ -3,6 +3,9 @@ class Tools{
     constructor(){
         this.init();
     }
+    contrast(a, b){
+        return a < b ? a : b;
+    }
     //初始化 
     init(){
         this.canvasInit();
@@ -13,21 +16,18 @@ class Tools{
     canvasInit(){
         //设定canvas所在的盒模型大小
         let parentNode = document.querySelector("#canvasLayout");
-        parentNode.style.height = "665.6px";
-        parentNode.style.width = "900px";
         //设定图片canvas
         this.canvasVideo = document.createElement('canvas');
-        console.log(parentNode.style.height);
-        this.canvasVideo.style.width = parentNode.style.width;
-        this.canvasVideo.style.height = parentNode.style.height;
+        this.canvasVideo.width = 1230;
+        this.canvasVideo.height = 665;
         this.canvasVideo.style.position = "absolute";
         this.canvasVideo.style.zIndex = "1000";
         parentNode.appendChild(this.canvasVideo);
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');
         this.canvasBackground.className = "canvasStyle";
-        this.canvasBackground.style.width = parentNode.style.width;
-        this.canvasBackground.style.height = parentNode.style.height;
+        this.canvasBackground.width = 1230;
+        this.canvasBackground.height = 665;
         this.canvasBackground.style.position = "absolute";
         this.canvasBackground.style.zIndex = "-1";
         let canvasBackgroundCxt = this.canvasBackground.getContext('2d');
@@ -51,6 +51,10 @@ class Tools{
         canvasBackgroundCxt.beginPath();
         canvasBackgroundCxt.fillRect(0,0,this.canvasBackground.width,this.canvasBackground.height);
         parentNode.appendChild(this.canvasBackground);
+
+        //设置录像canvas
+        this.canvasVideoTape = document.createElement("canvas");
+        this.canvasVideoTapeCtx = this.canvasVideoTape.getContext('2d');
     }
     //设定画布放大缩小比
     setupCanvas(){
@@ -75,11 +79,14 @@ class Tools{
     lableFound(){
         let that = this;
         this.backstageVideo = document.createElement('Video');
-        document.querySelector('#inputLayout').appendChild(this.backstageVideo);
+        //添加视频，正式使用不需要添加
+        //document.querySelector('#inputLayout').appendChild(this.backstageVideo);
         this.initialImg = new Image();
         this.initialImg.src = '../fonts/hkd.png';
         this.initialImg.onload = function(){
-            that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,0,0,1150,665); 
+            let width = that.contrast(that.initialImg.width,that.width);
+            let height = that.contrast(that.initialImg.height,that.height);
+            that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,0,0,width,height); 
         }
     }
 }

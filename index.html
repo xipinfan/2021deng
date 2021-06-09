@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="./css/index.css">
     <script defer src="./js/index.js"></script>
     <script defer src="./js/layer/videoLayer.js"></script>
+    <script defer src="./js/layer/imageLayer.js"></script>
     <script defer src="./js/bind.js"></script>
     <script>
         window.URL = window.URL || window.webkitURL;
@@ -20,11 +21,11 @@
 <body oncontextmenu="return false" onselectstart="return false">
     <div id="Layout">
         <div id="canvasLayout"></div>
-        <div id="manipulationLayout">
+        <div id="manipulationLayout" style="display: none;">
             <div id="inputLayout">
                 <input type="file" id="inputVido" accept="video/*">
             </div>
-            <div id="buttonLayout">
+            <div>
                 <button id="demo">wsgefae</button>
                 <button id="play1">play</button>
                 <button id="pause">pause</button>
@@ -32,6 +33,9 @@
                 <button id="recording">recording</button>
                 <button id="stop">stop</button>
             </div>
+        </div>
+        <div id="buttonLayout">
+            
         </div>
     </div>
 </body>
