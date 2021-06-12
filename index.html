@@ -18,24 +18,35 @@
         }
     </script>
 </head>
-<body oncontextmenu="return false" onselectstart="return false">
+<body >
     <div id="Layout">
         <div id="canvasLayout"></div>
-        <div id="manipulationLayout" style="display: none;">
-            <div id="inputLayout">
-                <input type="file" id="inputVido" accept="video/*">
+        <div style="display: flex;flex-direction: column;">
+            <div id="manipulationLayout">
+                <div id="inputLayout">
+                    <input type="file" id="inputVido" accept="video/*">
+                </div>
+                <div>
+                    <button id="demo">wsgefae</button>
+                    <button id="play1">play</button>
+                    <button id="pause">pause</button>
+                    <button id="export">export</button> 
+                    <button id="recording">recording</button>
+                    <button id="stop">stop</button>
+                </div>
             </div>
-            <div>
-                <button id="demo">wsgefae</button>
-                <button id="play1">play</button>
-                <button id="pause">pause</button>
-                <button id="export">export</button> 
-                <button id="recording">recording</button>
-                <button id="stop">stop</button>
+            <div id="buttonLayout">
+                <button id="white">white</button>
+                <button id="pencil">铅笔</button>
+                <button id="line">直线</button>
+                <button id="brush">刷子</button>
+                <button id="withdraw">撤回</button>
+                <button id="forward">前进</button>
+            </div>    
+            <div style="display: flex;flex-direction: row;">
+                <div id="x1">x1</div>
+                <div style="margin-left: 10px;" id="y1">y1</div>
             </div>
-        </div>
-        <div id="buttonLayout">
-            
         </div>
     </div>
 </body>

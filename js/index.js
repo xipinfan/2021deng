@@ -3,14 +3,42 @@ class Tools{
     constructor(){
         this.init();
     }
-    contrast(a, b){
-        return a < b ? a : b;
+    contrast(a, b){    //等比例缩放图片
+        let node = {};
+        if(a <= this.width && b <= this.height){
+            node.a = a;
+            node.b = b;
+        }
+        else if(a > this.width && b <= this.height){
+            node.a = this.width;
+            node.b = b*(this.width/a);
+        }
+        else if(a <= this.width && b > this.height){
+            node.a = a*(this.height/b);
+            node.b = this.height;
+        }
+        else if(a > this.width && b > this.height){
+            let aw = a - this.width;
+            let bh = b - this.height;
+            if(aw >= bh){
+                node.a = this.width;
+                node.b = b*(this.width/a);
+            }
+            else{
+                node.a = a*(this.height/b);
+                node.b = this.height;
+            }
+        }
+        return node;
     }
     //初始化 
     init(){
         this.canvasInit();
         this.labelInit();
         this.lableFound();
+    }
+    dataInit(){
+        
     }
     //初始化canvas画布
     canvasInit(){
@@ -22,6 +50,7 @@ class Tools{
         this.canvasVideo.height = 665;
         this.canvasVideo.style.position = "absolute";
         this.canvasVideo.style.zIndex = "1000";
+        this.canvasVideo.style.border = '2px solid #f1f1f1'
         parentNode.appendChild(this.canvasVideo);
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');
@@ -51,8 +80,7 @@ class Tools{
         canvasBackgroundCxt.beginPath();
         canvasBackgroundCxt.fillRect(0,0,this.canvasBackground.width,this.canvasBackground.height);
         parentNode.appendChild(this.canvasBackground);
-
-        //设置录像canvas
+        //设置录像canvas.
         this.canvasVideoTape = document.createElement("canvas");
         this.canvasVideoTapeCtx = this.canvasVideoTape.getContext('2d');
     }
@@ -84,9 +112,10 @@ class Tools{
         this.initialImg = new Image();
         this.initialImg.src = '../fonts/hkd.png';
         this.initialImg.onload = function(){
-            let width = that.contrast(that.initialImg.width,that.width);
-            let height = that.contrast(that.initialImg.height,that.height);
-            that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,0,0,width,height); 
+            let node = that.contrast(that.initialImg.width,that.initialImg.height)
+            that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,0,0,node.a,node.b); 
+            document.getElementById('white').click();
         }
     }
 }
+

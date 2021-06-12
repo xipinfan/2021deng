@@ -1,9 +1,7 @@
-class Canvas extends Tools{
-    constructor(){  
-        super();
-    }
+class Canvas{
     //将视频投射到画布上
     openCanvasVideo(){
+        console.log(this.backstageVideo);
         let that = this;
         let inputVideo = document.querySelector('input');
         this.backstageVideo.src = window.URL.createObjectURL(inputVideo.files[0]);    //获取视频所在路径并播放
@@ -12,11 +10,12 @@ class Canvas extends Tools{
     }
     onloadOpenVideo(videoWidth,videoHeight){
         let that = this;
+        let node = that.contrast(videoWidth,videoHeight);
         render();
         function render(){    //将视频投放到canvas上
             window.requestAnimationFrame(render);    //每秒触发60次这个函数
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-            that.canvasVideoCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight,0,0,that.contrast(videoWidth,that.width),that.contrast(videoHeight,that.height));
+            that.canvasVideoCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight,0,0,node.a,node.b);
             that.canvasVideoTapeCtx.clearRect(0,0,that.canvasVideoTape.width,that.canvasVideoTape.height);
             that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight);
         }
