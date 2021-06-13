@@ -33,12 +33,19 @@ class Tools{
     }
     //初始化 
     init(){
+        this.dataInit();
         this.canvasInit();
         this.labelInit();
         this.lableFound();
     }
     dataInit(){
-        
+        this.tool = [
+            "pencil","line","brush"
+        ];
+        this.toolCurrent = "brush";
+        this.pensize = 2;
+        this.lastLineWidth = -1;
+        this.brushWidth = 200;
     }
     //初始化canvas画布
     canvasInit(){
