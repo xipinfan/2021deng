@@ -40,25 +40,26 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush"
+            "pencil","line","brush","eraser"
         ];
         this.toolCurrent = "brush";
         this.pensize = 2;
-        this.lastLineWidth = -1;
-        this.brushWidth = 200;
+        this.strokeColor = '#000';
     }
     //初始化canvas画布
     canvasInit(){
         //设定canvas所在的盒模型大小
         let parentNode = document.querySelector("#canvasLayout");
+
         //设定图片canvas
         this.canvasVideo = document.createElement('canvas');
         this.canvasVideo.width = 1230;
         this.canvasVideo.height = 665;
         this.canvasVideo.style.position = "absolute";
         this.canvasVideo.style.zIndex = "1000";
-        this.canvasVideo.style.border = '2px solid #f1f1f1'
+        //this.canvasVideo.style.border = '2px'
         parentNode.appendChild(this.canvasVideo);
+
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');
         this.canvasBackground.className = "canvasStyle";
@@ -66,7 +67,9 @@ class Tools{
         this.canvasBackground.height = 665;
         this.canvasBackground.style.position = "absolute";
         this.canvasBackground.style.zIndex = "-1";
+        this.canvasBackground.style.border = '2px solid #f1f1f1'
         let canvasBackgroundCxt = this.canvasBackground.getContext('2d');
+
         //设定背景图片的样式
         let bg = document.createElement("canvas");
         let bgcxt = bg.getContext("2d");
@@ -82,14 +85,26 @@ class Tools{
         bgcxt.fillRect(10, 0, 20, 10);
         bgcxt.beginPath();
         bgcxt.fillRect(0, 10, 10, 20);
+
         //将样式图片填充放入背景图canvas
         canvasBackgroundCxt.fillStyle = canvasBackgroundCxt.createPattern(bg, "repeat");
         canvasBackgroundCxt.beginPath();
         canvasBackgroundCxt.fillRect(0,0,this.canvasBackground.width,this.canvasBackground.height);
         parentNode.appendChild(this.canvasBackground);
+
         //设置录像canvas.
         this.canvasVideoTape = document.createElement("canvas");
         this.canvasVideoTapeCtx = this.canvasVideoTape.getContext('2d');
+
+        //设置模拟图像(有一说一我不知道这怎么形容)
+        this.canvasDemo = document.createElement("canvas");
+        this.canvasDemo.className = "canvasStyle";
+        this.canvasDemo.width = 1230;
+        this.canvasDemo.height = 665;
+        this.canvasDemo.style.position = "absolute";
+        this.canvasDemo.style.zIndex = "1";
+        this.canvasDemoCtx = this.canvasDemo.getContext("2d");
+        parentNode.appendChild(this.canvasDemo);
     }
     //设定画布放大缩小比
     setupCanvas(){
