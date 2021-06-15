@@ -3,6 +3,10 @@ class ImageLayer{    //图像处理工具类
         this.canvasVideoCtx.fillStyle = "rgb(255,255,255)";
         this.canvasVideoCtx.fillRect(0,0,this.width,this.height);
     }
+    eliminate(e){
+        this.canvasVideoCtx.fillStyle = "rgb(255,255,255)";
+        this.canvasVideoCtx.fillRect(e.layerX,e.layerY,this.rubberIconSize,this.rubberIconSize);
+    }
     //目前已废弃，因为路径的连接有问题，且绘制的点其实为直线，滑动速度快之后会形成一条一条的线
     graffiti(x, y){    //绘制路径记录上一个点坐标，然后将下一个点坐标与上一个点相连接
         if(this.penstate){
@@ -27,7 +31,6 @@ class ImageLayer{    //图像处理工具类
         this.canvasVideoCtx.beginPath();
         this.canvasVideoCtx.moveTo(x1,y1);
         this.canvasVideoCtx.lineTo(x2,y2);
-
         this.canvasVideoCtx.lineWidth = this.pensize;    //设置线条宽度。
         this.canvasVideoCtx.lineCap = 'round';   //设置线条末端样式。
         this.canvasVideoCtx.lineJoin = 'round';    //设定线条与线条间接合处的样式。

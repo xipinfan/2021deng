@@ -25,8 +25,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
     }
     canvasBindInit(){
         let that = this,
-            lastCoordinate = {},
-            beginLine = {};
+            lastCoordinate = {};
         let xbind = document.querySelector("#x1");    //显示当前鼠标所在的坐标点
         let ybind = document.querySelector('#y1');
         this.canvasVideo.addEventListener("mousedown",function(e){    //当鼠标在canvas按下的时候开始记录路径，且保存初始画面
@@ -44,6 +43,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     lastCoordinate.x = e.layerX;
                     lastCoordinate.y = e.layerY;
                     break;
+                case 'eraser':
+                    that.ImageLayerNode.eliminate.call(that, e);
             };
             that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
         })
@@ -60,8 +61,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     case 'pencil':
                         that.ImageLayerNode.graffiti.call(that,e.layerX,e.layerY);
                         break;
-                    case 'line':
-                        break;
                     case 'brush':
                         let curCoordinate = {
                             x:e.layerX,
@@ -70,9 +69,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.ImageLayerNode.drawLine.call(that, lastCoordinate.x, lastCoordinate.y, curCoordinate.x, curCoordinate.y);
                         lastCoordinate = curCoordinate;
                         break;
+                    case 'eraser':
+                        that.ImageLayerNode.eliminate.call(that, e);
                 };
             }
-
             xbind.innerHTML = e.layerX;
             ybind.innerHTML = e.layerY;
         })
@@ -101,11 +101,13 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 default:
                     element.addEventListener("click",function(e){
                         that.toolCurrent = that.tool[index-1];
+                        that.canvasDemo.style.zIndex = 1;
                         if(that.toolCurrent === "line"){
                             that.canvasDemo.style.zIndex = 1001;
                         }
-                        else{
-                            that.canvasDemo.style.zIndex = 1;
+                        if(that.toolCurrent === "eraser"){
+                            let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
+                            that.canvasVideo.style.cursor = "url("+ str +"),move";
                         }
                     })
             }
@@ -123,6 +125,20 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.pensize -= 2;
                         }
                         break;
+                    case "eraserenlarge":
+                        if(that.rubberIconSize < 20){
+                            that.rubberIconSize += 4;
+                        }
+                        break;
+                    case "erasernarrow":
+                        if(that.rubberIconSize > 4){
+                            that.rubberIconSize -= 4;
+                        }
+                        break;
+                }
+                if(that.toolCurrent === "eraser"){
+                    let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
+                    that.canvasVideo.style.cursor = "url("+ str +"),move";
                 }
             })
         });
@@ -145,120 +161,153 @@ class Bind extends Tools{    //绑定事件类，继承主类
             that.CanvasNode.stopRecordingVideo.call(that);
         })
     }
-    canvasDemoBindInit(){
-        let that = this,  beginLine = {}, endLine = {},nodeState = false, controlnode = true, operation = true, beginmobile = {}, endmobile = {};
+    canvasDemoBindInit(){    //虚拟框画布函数
+        let that = this, stay,  beginLine = {}, endLine = {},nodeState = false, controlnode = true, operation = false, beginmobile = {}, endmobile = {};
+        //controlnode作为标记当前canvas状态的标记，true标识为划线状态，false为修改状态。nodeState为鼠标是否按下的标记，true为按下，false为未按下
+        //operation作为按下鼠标之后是否在操作区域的标记，true为在，false不在
         this.canvasDemo.addEventListener("mousedown", function(e){
-            if(controlnode){    //初次画图时
+            if(controlnode){    //划线状态时
                 beginLine.x = e.layerX;    //保存初始路径
                 beginLine.y = e.layerY;
                 nodeState = true;    //开始记录当前路径
             }
             else{
-                if(e.layerX<=Math.max(beginLine.x, endLine.x)+5 &&e.layerX >= Math.min(beginLine.x,endLine.x)-5 &&e.layerY<=Math.max(beginLine.y, endLine.y)+5&& e.layerY>=Math.min(beginLine.y ,endLine.y)-5 ){
+                switch(that.toolCurrent){    
+                    case "line":
+                        stay = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x:e.layerX,y:e.layerY});
+                        break;
+                    default:
+                        stay = that.ImageLayerNode.boundary({x:e.layerX,y:e.layerY}, beginLine, endLine);
+                }  
+                if(stay !== "default"){
                     beginmobile.x = e.layerX;
                     beginmobile.y = e.layerY;
-                    operation = false;
+                    operation = true;
                 }
                 else{
                     that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                    that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
                     that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);  
-                    operation = true;
                 }
             }
         });
         this.canvasDemo.addEventListener('mouseup', function(e){
-            if(operation){
+            if(nodeState){
                 endLine.x = e.layerX;
                 endLine.y = e.layerY;
-                if(controlnode){
+                switch(that.toolCurrent){
+                    case "line":
+                        that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
+                        break;
+                    default:
+                        that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //矩形框
+                }  
+                nodeState = false;
+            }
+            if(!operation){
+                controlnode = !controlnode;    //转换形态    
+            }
+            operation = false;   
+        })
+        this.canvasDemo.addEventListener("mousemove",function(e){
+            if(controlnode){
+                if(nodeState){
+                    endLine.x = e.layerX;    //记录结束路径
+                    endLine.y = e.layerY;
+                    that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
+                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx,beginLine, endLine);    //画线，之后可以用switch来分别画其他图形    
+                }
+            }
+            else{
+                switch(that.toolCurrent){
+                    case "line":
+                        that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
+                        break;
+                    default:
+                        that.ImageLayerNode.mousePointer.call(that, e, beginLine, endLine, that.ImageLayerNode.boundary);
+                }
+                if(operation){
                     if(that.toolCurrent === "line"){
+                        let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});
+                        endmobile.x = e.layerX - beginmobile.x;
+                        endmobile.y = e.layerY - beginmobile.y;
+                        beginmobile.x = e.layerX;
+                        beginmobile.y = e.layerY;
+                        switch(node){
+                            case "core":
+                                beginLine.x += endmobile.x;
+                                beginLine.y += endmobile.y;
+                                endLine.x += endmobile.x;
+                                endLine.y += endmobile.y;
+                                break;
+                            case "begin":
+                                beginLine.x += endmobile.x;
+                                beginLine.y += endmobile.y;
+                                
+                                break;
+                            case "end":
+                                endLine.x += endmobile.x;
+                                endLine.y += endmobile.y;
+                                break;
+                        }
+                        that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                        that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                     }
                     else{
-                        that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //矩形框
-                    }
-                }
-                nodeState = false;
-                controlnode = !controlnode;    
-            }
-            else{
-                //operation = !operation;
-            }
-        })
-        this.canvasDemo.addEventListener("mousemove",function(e){
-            if(nodeState&&controlnode){    //当刚开始划线时
-                endLine.x = e.layerX;    //记录结束路径
-                endLine.y = e.layerY;
-                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
-                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx,beginLine, endLine);    //画线，
-            }
-            else if(that.toolCurrent === "line"){
-                that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
-            }
-            else if(!controlnode){
-                that.ImageLayerNode.mousePointer.call(that, e, beginLine, endLine, that.ImageLayerNode.boundary);
-            }
-            if(!operation){
-                if(that.toolCurrent === "line"){
-                    let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});
-                    switch(node){
-                        case "core":
-
-                    }
-                }
-                else{
-                    let node = that.ImageLayerNode.boundary(e, beginLine, endLine);
-                    switch(node){
-                        case "core":
-                            endmobile.x = e.layerX - beginmobile.x;
-                            endmobile.y = e.layerY - beginmobile.y;
-                            beginmobile.x = e.layerX;
-                            beginmobile.y = e.layerY;
-                            beginLine.x += endmobile.x;
-                            beginLine.y += endmobile.y;
-                            endLine.x += endmobile.x;
-                            endLine.y += endmobile.y;
-                            that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                            that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
-                            that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
-                            break;
-                        case "topleft":
-                            endmobile.x = e.layerX - beginmobile.x;
-                            beginmobile.x = e.layerX;
-                            beginmobile.y = e.layerY;
-                            if(beginLine.x>endLine.x)endLine.x += endmobile.x;
-                            else beginLine.x += endmobile.x;
-                            if(beginLine.y>endLine.y)endLine.y += endmobile.y;
-                            else beginLine.y += endmobile.y;
-                            that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                            that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
-                            that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
-                            break;
-                        case "lowerleft":
-                            break;
-                        case "topright":
-                            break;
-                        case "lowerright":
-                            break;
-                        case "top":
-                            break;
-                        case "lower":
-                            break;
-                        case "right":
-                            break;
-                        case "left":
-                            endmobile.x = e.layerX - beginmobile.x;
-                            beginmobile.x = e.layerX;
-                            beginmobile.y = e.layerY;
-                            if(beginLine.x>endLine.x)endLine.x += endmobile.x;
-                            else beginLine.x += endmobile.x;
-                            that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                            that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
-                            that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
-                            break;
-                        default:
-                            
-                    }
+                        let node = that.ImageLayerNode.boundary(e, beginLine, endLine);
+                        switch(node){
+                            case "core":
+                                endmobile.x = e.layerX - beginmobile.x;
+                                endmobile.y = e.layerY - beginmobile.y;
+                                beginmobile.x = e.layerX;
+                                beginmobile.y = e.layerY;
+                                beginLine.x += endmobile.x;
+                                beginLine.y += endmobile.y;
+                                endLine.x += endmobile.x;
+                                endLine.y += endmobile.y;
+                                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
+                                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
+                                break;
+                            case "topleft":
+                                endmobile.x = e.layerX - beginmobile.x;
+                                beginmobile.x = e.layerX;
+                                beginmobile.y = e.layerY;
+                                if(beginLine.x>endLine.x)endLine.x += endmobile.x;
+                                else beginLine.x += endmobile.x;
+                                if(beginLine.y>endLine.y)endLine.y += endmobile.y;
+                                else beginLine.y += endmobile.y;
+                                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
+                                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
+                                break;
+                            case "lowerleft":
+                                break;
+                            case "topright":
+                                break;
+                            case "lowerright":
+                                break;
+                            case "top":
+                                break;
+                            case "lower":
+                                break;
+                            case "right":
+                                break;
+                            case "left":
+                                endmobile.x = e.layerX - beginmobile.x;
+                                beginmobile.x = e.layerX;
+                                beginmobile.y = e.layerY;
+                                if(beginLine.x>endLine.x)endLine.x += endmobile.x;
+                                else beginLine.x += endmobile.x;
+                                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
+                                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
+                                break;
+                            default:
+                                
+                        }
+                    }    
                 }
             }
         })

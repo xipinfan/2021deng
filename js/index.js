@@ -45,6 +45,8 @@ class Tools{
         this.toolCurrent = "brush";
         this.pensize = 2;
         this.strokeColor = '#000';
+
+        this.rubberIconSize = 8;    //橡皮图标显示
     }
     //初始化canvas画布
     canvasInit(){
