@@ -3,6 +3,7 @@ class ImageLayer{    //图像处理工具类
         this.canvasVideoCtx.fillStyle = "rgb(255,255,255)";
         this.canvasVideoCtx.fillRect(0,0,this.width,this.height);
     }
+    //区域方型涂白
     eliminate(e){
         this.canvasVideoCtx.fillStyle = "rgb(255,255,255)";
         this.canvasVideoCtx.fillRect(e.layerX,e.layerY,this.rubberIconSize,this.rubberIconSize);
@@ -51,11 +52,11 @@ class ImageLayer{    //图像处理工具类
         
         canvas.stroke();
     }
-
+    //待改
     dottedBox(x1, y1, x2, y2){    //虚线提示框
-        this.canvasDemoCtx.save();
-        this.canvasDemoCtx.beginPath();
-        let x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x1 - x2), h = Math.abs(y1 - y2);
+        this.canvasDemoCtx.save();    //先保存画布初始状态
+        this.canvasDemoCtx.beginPath();    
+        let x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x1 - x2), h = Math.abs(y1 - y2);    
         this.canvasDemoCtx.setLineDash([10, 4]);
         this.canvasDemoCtx.lineDashOffset = -10;
         this.canvasDemoCtx.strokeStyle = "rgba(0,0,0,0.2)";
@@ -76,29 +77,29 @@ class ImageLayer{    //图像处理工具类
     }
 
     lineBox(x1, y1, x2, y2){
-        this.canvasDemoCtx.save();
-        let path = [{x:x1, y:y1},{x:x2,y:y2}];
+        this.canvasDemoCtx.save();    //先保存画布初始状态，为了使得之后的strokeStyle等操作不会改变canvas的基本属性
+        let path = [{x:x1, y:y1},{x:x2,y:y2}];    //找到两个点
         this.canvasDemoCtx.strokeStyle = "rgba(0,0,0,0.3)";
         path.forEach((element)=>{
-            this.canvasDemoCtx.beginPath();
+            this.canvasDemoCtx.beginPath();    //标记两个点
             this.canvasDemoCtx.arc(element.x, element.y, 5, 0, Math.PI*2, true);
             this.canvasDemoCtx.stroke();    
         }) 
-        this.canvasDemoCtx.restore();
+        this.canvasDemoCtx.restore();   //还原初始状态
     }
 
     spotLineDistance(beginline, endline, node){
-        if(this.lineDistance(beginline, node)<=8){
+        if(this.lineDistance(beginline, node)<=8){    //判断点是否在初始点附近
             return "begin";
         }
-        else if(this.lineDistance(endline, node)<=8){
+        else if(this.lineDistance(endline, node)<=8){    //判断点是否在结束点附近
             return "end";
         }
         else{
             let long =  this.pointToLine(beginline, endline, node);
-            if(node.x<=Math.max(beginline.x, endline.x)+8&&node.x>=Math.min(beginline.x, endline.x-8)){
-                if(node.y<=Math.max(beginline.y, endline.y)+8&&node.y>=Math.min(beginline.y, endline.y-8)){
-                    if(long < 8){
+            if(node.x<=Math.max(beginline.x, endline.x)+8&&node.x>=Math.min(beginline.x, endline.x-8)){     //判断x坐标是否在线段内
+                if(node.y<=Math.max(beginline.y, endline.y)+8&&node.y>=Math.min(beginline.y, endline.y-8)){     //判断y坐标是否在线段内
+                    if(long < 8){    //判断点到线距离
                         return "core";
                     }
                 }
@@ -119,16 +120,16 @@ class ImageLayer{    //图像处理工具类
     mousePointLine(e, beginLine, endLine, canvasDemo){
         let node = this.spotLineDistance(beginLine, endLine, {x:e.layerX, y:e.layerY});
         switch(node){
-            case "core":
+            case "core":    //线附近
                 canvasDemo.style.cursor = "move";
                 break;
-            case "begin":
+            case "begin":    //初始点附近
                 canvasDemo.style.cursor = "n-resize";
                 break;
-            case "end":
+            case "end":    //结束点附近
                 canvasDemo.style.cursor = "n-resize";
                 break;
-            default:
+            default:     //以外
                 canvasDemo.style.cursor = "default";
         }
     }

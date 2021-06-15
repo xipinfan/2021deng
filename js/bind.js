@@ -44,7 +44,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     lastCoordinate.y = e.layerY;
                     break;
                 case 'eraser':
-                    that.ImageLayerNode.eliminate.call(that, e);
+                    that.ImageLayerNode.eliminate.call(that, e);    //所在区域方型涂白
             };
             that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
         })
@@ -70,7 +70,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         lastCoordinate = curCoordinate;
                         break;
                     case 'eraser':
-                        that.ImageLayerNode.eliminate.call(that, e);
+                        that.ImageLayerNode.eliminate.call(that, e);   //所在区域方型涂白
                 };
             }
             xbind.innerHTML = e.layerX;
@@ -102,10 +102,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     element.addEventListener("click",function(e){
                         that.toolCurrent = that.tool[index-1];
                         that.canvasDemo.style.zIndex = 1;
-                        if(that.toolCurrent === "line"){
+                        if(that.toolCurrent === "line"){    //判断按下的按钮是否为直线按钮，需要特殊画布
                             that.canvasDemo.style.zIndex = 1001;
                         }
-                        if(that.toolCurrent === "eraser"){
+                        if(that.toolCurrent === "eraser"){    //当按下的为橡皮擦时改变鼠标样式
                             let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
                             that.canvasVideo.style.cursor = "url("+ str +"),move";
                         }
@@ -115,7 +115,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         document.querySelectorAll('#sb1>input[type=button]').forEach(element => {
             element.addEventListener("click",function(e){
                 switch(e.path[0].id){
-                    case "addfontsize":
+                    case "addfontsize":    //画笔粗细控制
                         if(that.pensize<=12){
                             that.pensize += 2;
                         }
@@ -124,8 +124,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         if(that.pensize >= 4){
                             that.pensize -= 2;
                         }
-                        break;
-                    case "eraserenlarge":
+                        break; 
+                    case "eraserenlarge":    //橡皮粗细控制
                         if(that.rubberIconSize < 20){
                             that.rubberIconSize += 4;
                         }
@@ -172,45 +172,45 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 nodeState = true;    //开始记录当前路径
             }
             else{
-                switch(that.toolCurrent){    
+                switch(that.toolCurrent){       //判断当前是否处于区域中
                     case "line":
                         stay = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x:e.layerX,y:e.layerY});
                         break;
                     default:
                         stay = that.ImageLayerNode.boundary({x:e.layerX,y:e.layerY}, beginLine, endLine);
                 }  
-                if(stay !== "default"){
-                    beginmobile.x = e.layerX;
+                if(stay !== "default"){    
+                    beginmobile.x = e.layerX;    //记录初始点
                     beginmobile.y = e.layerY;
-                    operation = true;
+                    operation = true;    //当前已经在区域中按下的标记
                 }
                 else{
-                    that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                    that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除虚拟画布
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
-                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);  
+                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);      //将直线数据记录在主canvas画布上
                 }
             }
         });
-        this.canvasDemo.addEventListener('mouseup', function(e){
-            if(nodeState){
-                endLine.x = e.layerX;
+        this.canvasDemo.addEventListener('mouseup', function(e){ 
+            if(nodeState){    //当鼠标按下时
+                endLine.x = e.layerX;    //划线状态下记录终点
                 endLine.y = e.layerY;
-                switch(that.toolCurrent){
+                switch(that.toolCurrent){    //判断虚拟框
                     case "line":
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                         break;
                     default:
                         that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //矩形框
                 }  
-                nodeState = false;
+                nodeState = false;    //记录鼠标抬起
             }
-            if(!operation){
+            if(!operation){    //当鼠标不是按在此区域时或者为划线状态时，operation为false
                 controlnode = !controlnode;    //转换形态    
             }
-            operation = false;   
+            operation = false;   //初始化标记的状态
         })
         this.canvasDemo.addEventListener("mousemove",function(e){
-            if(controlnode){
+            if(controlnode){    //划线状态
                 if(nodeState){
                     endLine.x = e.layerX;    //记录结束路径
                     endLine.y = e.layerY;
@@ -218,24 +218,24 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx,beginLine, endLine);    //画线，之后可以用switch来分别画其他图形    
                 }
             }
-            else{
-                switch(that.toolCurrent){
+            else{    //修改状态
+                switch(that.toolCurrent){    //判断图形类型
                     case "line":
                         that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
                         break;
                     default:
                         that.ImageLayerNode.mousePointer.call(that, e, beginLine, endLine, that.ImageLayerNode.boundary);
                 }
-                if(operation){
-                    if(that.toolCurrent === "line"){
-                        let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});
-                        endmobile.x = e.layerX - beginmobile.x;
+                if(operation){    //按下区域为修改区域时
+                    if(that.toolCurrent === "line"){     //直线特殊判断
+                        let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});    //判断当前区域类型
+                        endmobile.x = e.layerX - beginmobile.x;    //点到点差值
                         endmobile.y = e.layerY - beginmobile.y;
-                        beginmobile.x = e.layerX;
+                        beginmobile.x = e.layerX;     //初始化下一个点
                         beginmobile.y = e.layerY;
                         switch(node){
                             case "core":
-                                beginLine.x += endmobile.x;
+                                beginLine.x += endmobile.x;    //移动线段初始或者结束坐标
                                 beginLine.y += endmobile.y;
                                 endLine.x += endmobile.x;
                                 endLine.y += endmobile.y;
@@ -250,8 +250,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 endLine.y += endmobile.y;
                                 break;
                         }
-                        that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                        that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
+                        that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
+                        that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //重绘直线
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                     }
                     else{
