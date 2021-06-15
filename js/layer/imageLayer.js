@@ -46,7 +46,6 @@ class ImageLayer{    //图像处理工具类
         canvas.lineWidth = this.pensize;    //设置线条宽度。
         canvas.strokStyle = this.strokeColor || '#000';
         
-
         canvas.stroke();
     }
 
@@ -85,7 +84,53 @@ class ImageLayer{    //图像处理工具类
         this.canvasDemoCtx.restore();
     }
 
-    lineFromSpot(e, )
+    spotLineDistance(beginline, endline, node){
+        if(this.lineDistance(beginline, node)<=8){
+            return "begin";
+        }
+        else if(this.lineDistance(endline, node)<=8){
+            return "end";
+        }
+        else{
+            let long =  this.pointToLine(beginline, endline, node);
+            if(node.x<=Math.max(beginline.x, endline.x)+8&&node.x>=Math.min(beginline.x, endline.x-8)){
+                if(node.y<=Math.max(beginline.y, endline.y)+8&&node.y>=Math.min(beginline.y, endline.y-8)){
+                    if(long < 8){
+                        return "core";
+                    }
+                }
+            } 
+            return "default";
+        }
+    }
+    lineDistance(beginspot, endspot){    //点到点距离公式
+        return Math.sqrt(Math.pow(beginspot.x-endspot.x, 2)+Math.pow(beginspot.y - endspot.y, 2));
+    }
+
+    pointToLine(beginline, endline, node){    //点到线距离函数
+        let k = (beginline.y-endline.y)/(beginline.x-endline.x);
+        let b = beginline.y - k*beginline.x;
+        return Math.abs( k*node.x - node.y + b )/Math.sqrt( Math.pow(k, 2)+1 );
+    }
+
+    mousePointLine(e, beginLine, endLine, canvasDemo){
+        let node = this.spotLineDistance(beginLine, endLine, {x:e.layerX, y:e.layerY});
+        switch(node){
+            case "core":
+                canvasDemo.style.cursor = "move";
+                break;
+            case "begin":
+                canvasDemo.style.cursor = "n-resize";
+                break;
+            case "end":
+                canvasDemo.style.cursor = "n-resize";
+                break;
+            default:
+                canvasDemo.style.cursor = "default";
+        }
+    }
+
+    //lineFromSpot(e, )
     mousePointer(e, beginLine, endLine, boundary){
         let node = boundary(e, beginLine, endLine);
         switch(node){

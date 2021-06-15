@@ -148,7 +148,12 @@ class Bind extends Tools{    //绑定事件类，继承主类
     canvasDemoBindInit(){
         let that = this,  beginLine = {}, endLine = {},nodeState = false, controlnode = true, operation = true, beginmobile = {}, endmobile = {};
         this.canvasDemo.addEventListener("mousedown", function(e){
-            if(!controlnode){
+            if(controlnode){    //初次画图时
+                beginLine.x = e.layerX;    //保存初始路径
+                beginLine.y = e.layerY;
+                nodeState = true;    //开始记录当前路径
+            }
+            else{
                 if(e.layerX<=Math.max(beginLine.x, endLine.x)+5 &&e.layerX >= Math.min(beginLine.x,endLine.x)-5 &&e.layerY<=Math.max(beginLine.y, endLine.y)+5&& e.layerY>=Math.min(beginLine.y ,endLine.y)-5 ){
                     beginmobile.x = e.layerX;
                     beginmobile.y = e.layerY;
@@ -159,11 +164,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);  
                     operation = true;
                 }
-            }
-            else{
-                beginLine.x = e.layerX;
-                beginLine.y = e.layerY;
-                nodeState = true;
             }
         });
         this.canvasDemo.addEventListener('mouseup', function(e){
@@ -182,30 +182,27 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 controlnode = !controlnode;    
             }
             else{
-                operation = !operation;
+                //operation = !operation;
             }
         })
         this.canvasDemo.addEventListener("mousemove",function(e){
-            console.log(operation);
-            if(nodeState&&controlnode){
-                endLine.x = e.layerX;
+            if(nodeState&&controlnode){    //当刚开始划线时
+                endLine.x = e.layerX;    //记录结束路径
                 endLine.y = e.layerY;
-                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx,beginLine, endLine);  
+                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
+                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx,beginLine, endLine);    //画线，
+            }
+            else if(that.toolCurrent === "line"){
+                that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
             }
             else if(!controlnode){
                 that.ImageLayerNode.mousePointer.call(that, e, beginLine, endLine, that.ImageLayerNode.boundary);
             }
             if(!operation){
                 if(that.toolCurrent === "line"){
-                    let spot;
-                    if(e.layerX <= beginLine.x+5 && e.layerX >= beginLine.x+5 &&  e.layerY <= beginLine.y+5 && e.layerY >= beginLine.y-5 ){
-
-                    }
-                    else if(e.layerX <= endLine.x+5 && e.layerX >= endLine.x+5 &&  e.layerY <= endLine.y+5 && e.layerY >= endLine.y-5 ){
-
-                    }
-                    else if(){
+                    let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});
+                    switch(node){
+                        case "core":
 
                     }
                 }
