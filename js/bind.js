@@ -14,6 +14,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.forwardData = [];    //保存每一次回撤前的图像
         this.ImageLayerNode = new ImageLayer();      //导入工具类
         this.CanvasNode = new Canvas();  
+        this.centralPoint = {};
     }
     videoBindingInit(){
         let that = this;    //保存this作用域
@@ -79,6 +80,23 @@ class Bind extends Tools{    //绑定事件类，继承主类
     }
     canvasButtonBindInit(){
         let that = this;
+        document.querySelectorAll("#flipButton>button").forEach((element,index)=>{
+            element.addEventListener("click",function(e){
+                switch(element.id){
+                    case "clockwise":
+                        console.log(that.centralPoint);
+                        //that.canvasDemoCtx.save();
+                        //that.canvasDemoCtx.translate(that.centralPoint.x, that.centralPoint.y);
+                        that.canvasDemoCtx.translate(0, 0);
+                        that.canvasDemoCtx.rotate(Math.PI*2/6);
+                        //that.canvasDemoCtx.restore();
+                        break;
+                    case "anticlockwise":
+                    case "reversal":
+                    case "flip":
+                }
+            })
+        })
         document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
             switch(element.id){
                 case 'white':
@@ -103,7 +121,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.toolCurrent = that.tool[index-1];
                         that.canvasDemo.style.zIndex = 1;
                         that.canvasVideo.style.cursor = "default";
-                        if(that.toolCurrent === "line" || that.toolCurrent === "rectangle"){    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
+                        if(that.toolCurrent === "line" || that.toolCurrent === "rectangle" || that.toolCurrent === "round"){    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
                             that.canvasDemo.style.zIndex = 1001;
                         }
                         if(that.toolCurrent === "eraser"){    //当按下的为橡皮擦时改变鼠标样式
@@ -187,7 +205,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         stay = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x:e.layerX,y:e.layerY});
                         break;
                     default:
-                        stay = that.ImageLayerNode.boundary({x:e.layerX,y:e.layerY}, beginLine, endLine);
+                        stay = that.ImageLayerNode.boundary(that.canvasDemo, e, firstplot, endplot, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);;
                 }  
                 if(stay !== "default"){    
                     beginmobile.x = e.layerX;    //记录初始点
@@ -197,7 +215,18 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 else{
                     that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除虚拟画布
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
-                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);      //将直线数据记录在主canvas画布上
+                    switch(that.toolCurrent){
+                        case "line":
+                            that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);      //将直线数据记录在主canvas画布上
+                            break;
+                        case "rectangle":
+                            that.ImageLayerNode.solidBox.call(that, that.canvasVideoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
+                            break;
+                        case "round":
+                            that.ImageLayerNode.solidRound.call(that, that.canvasVideoCtx, firstplot, endplot);    //圆形
+                            break;
+                    }
+                    
                 }
             }
         });
@@ -209,10 +238,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
                 switch(that.toolCurrent){    //判断虚拟框
                     case "line":
-                        that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
+                        that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线提示框
                         break;
                     default:
-                        that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
+                        that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
                 }  
                 nodeState = false;    //记录鼠标抬起
             }
@@ -232,9 +261,16 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     switch(that.toolCurrent){
                         case "line":
                             that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //画线，之后可以用switch来分别画其他图形
+                            that.centralPoint = {x:(beginLine.x + endLine.y)/2, y:(beginLine.y + endLine.y)/2};
                             break;
-                        default:
-                            that.ImageLayerNode.solidBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
+                        case "rectangle":
+                            that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
+                            that.centralPoint = {x:(firstplot.x + endplot.y)/2, y:(firstplot.y + endplot.y)/2};
+                            break;
+                        case "round":
+                            that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
+                            that.centralPoint = {x:(firstplot.x + endplot.y)/2, y:(firstplot.y + endplot.y)/2};
+                            break;
                     }
                 }
             }
@@ -244,15 +280,15 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
                         break;
                     default:
-                        that.ImageLayerNode.mousePointer.call(that, e, firstplot, endplot, that.ImageLayerNode.boundary, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);
+                        that.ImageLayerNode.boundary(that.canvasDemo, e, firstplot, endplot, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);
                 }
                 if(operation){    //按下区域为修改区域时
+                    endmobile.x = e.layerX - beginmobile.x;    //点到点差值
+                    endmobile.y = e.layerY - beginmobile.y;
+                    beginmobile.x = e.layerX;     //初始化下一个点
+                    beginmobile.y = e.layerY;
                     if(that.toolCurrent === "line"){     //直线特殊判断
                         let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});    //判断当前区域类型
-                        endmobile.x = e.layerX - beginmobile.x;    //点到点差值
-                        endmobile.y = e.layerY - beginmobile.y;
-                        beginmobile.x = e.layerX;     //初始化下一个点
-                        beginmobile.y = e.layerY;
                         switch(node){
                             case "core":
                                 beginLine.x += endmobile.x;    //移动线段初始或者结束坐标
@@ -272,62 +308,59 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         }
                         that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
                         that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //重绘直线
+                        that.centralPoint = {x:(beginLine.x + endLine.y)/2, y:(beginLine.y + endLine.y)/2};
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                     }
                     else{
-                        let node = that.ImageLayerNode.boundary(e, beginLine, endLine);
+                        let node = that.ImageLayerNode.boundary(that.canvasDemo, e, firstplot, endplot, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);
                         switch(node){
                             case "core":
-                                endmobile.x = e.layerX - beginmobile.x;
-                                endmobile.y = e.layerY - beginmobile.y;
-                                beginmobile.x = e.layerX;
-                                beginmobile.y = e.layerY;
-                                beginLine.x += endmobile.x;
-                                beginLine.y += endmobile.y;
-                                endLine.x += endmobile.x;
-                                endLine.y += endmobile.y;
-                                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
-                                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
+                                firstplot.x += endmobile.x;
+                                firstplot.y += endmobile.y;
+                                endplot.x += endmobile.x;
+                                endplot.y += endmobile.y;
                                 break;
                             case "topleft":
-                                endmobile.x = e.layerX - beginmobile.x;
-                                beginmobile.x = e.layerX;
-                                beginmobile.y = e.layerY;
-                                if(beginLine.x>endLine.x)endLine.x += endmobile.x;
-                                else beginLine.x += endmobile.x;
-                                if(beginLine.y>endLine.y)endLine.y += endmobile.y;
-                                else beginLine.y += endmobile.y;
-                                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
-                                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
+                                firstplot.x += endmobile.x;
+                                firstplot.y += endmobile.y;
                                 break;
                             case "lowerleft":
+                                firstplot.x += endmobile.x;
+                                endplot.y += endmobile.y;
                                 break;
                             case "topright":
+                                endplot.x += endmobile.x;
+                                firstplot.y += endmobile.y;
                                 break;
                             case "lowerright":
+                                endplot.x += endmobile.x;
+                                endplot.y += endmobile.y;
                                 break;
                             case "top":
+                                firstplot.y += endmobile.y;
                                 break;
                             case "lower":
+                                endplot.y += endmobile.y;
                                 break;
                             case "right":
+                                endplot.x += endmobile.x;
                                 break;
                             case "left":
-                                endmobile.x = e.layerX - beginmobile.x;
-                                beginmobile.x = e.layerX;
-                                beginmobile.y = e.layerY;
-                                if(beginLine.x>endLine.x)endLine.x += endmobile.x;
-                                else beginLine.x += endmobile.x;
-                                that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                                that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);
-                                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);
+                                firstplot.x += endmobile.x;
                                 break;
-                            default:
-                                
                         }
-                    }    
+                        that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
+                        that.centralPoint = {x:(firstplot.x + endplot.y)/2, y:(firstplot.y + endplot.y)/2};
+                        switch(that.toolCurrent){
+                            case "rectangle":
+                                that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
+                                break;
+                            case "round":
+                                that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
+                                break;
+                        }
+                        that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框
+                    }
                 }
             }
         })

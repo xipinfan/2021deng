@@ -106,24 +106,24 @@ class ImageLayer{    //图像处理工具类
 
     //矩形函数
     //待改
-    solidBox(x1, y1, x2, y2){    //实线矩形框
-        this.canvasDemoCtx.save();
-        this.canvasDemoCtx.beginPath();
+    solidBox(canvas, x1, y1, x2, y2){    //实线矩形框
+        canvas.save();
+        canvas.beginPath();
         let x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x1 - x2), h = Math.abs(y1 - y2);  
-        this.canvasDemoCtx.strokeStyle = this.strokeColor;
-        this.canvasDemoCtx.lineWidth = this.pensize;    //设置线条宽度。
-        this.canvasDemoCtx.strokeRect(x, y, w, h);
-        this.canvasDemoCtx.restore();
+        canvas.strokeStyle = this.strokeColor;
+        canvas.lineWidth = this.pensize;    //设置线条宽度。
+        canvas.strokeRect(x, y, w, h);
+        canvas.restore();
     }
 
     dottedBox(x1, y1, x2, y2){    //虚线提示框
         this.canvasDemoCtx.save();    //先保存画布初始状态
         this.canvasDemoCtx.beginPath();    
         let x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x1 - x2), h = Math.abs(y1 - y2);    
-        this.canvasDemoCtx.setLineDash([10, 4]);
+        this.canvasDemoCtx.setLineDash([5, 2]);
         this.canvasDemoCtx.lineDashOffset = -10;
-        this.canvasDemoCtx.strokeStyle = "rgba(0,0,0,0.3)";
-        this.canvasDemoCtx.lineWidth = 2;
+        this.canvasDemoCtx.strokeStyle = "rgba(131,191,236)";
+        this.canvasDemoCtx.lineWidth = 1;
         this.canvasDemoCtx.strokeRect(x, y, w, h);
         this.canvasDemoCtx.restore();
 
@@ -131,85 +131,69 @@ class ImageLayer{    //图像处理工具类
         let x3 = Math.abs(x1 - x2)/2+Math.min(x1,x2), y3 = Math.abs(y1 - y2)/2+Math.min(y1,y2);
         let path = [{x:x1, y:y1},{x:x2, y:y2},{x:x1, y:y2},{x:x2, y:y1},{x:x1, y:y3},{x:x2, y:y3},{x:x3, y:y1},{x:x3, y:y2}];
         //this.canvasDemoCtx.fillStyle = "#000";
-        this.canvasDemoCtx.strokeStyle = "rgba(0,0,0,0.3)";
-        path.forEach((element, index)=>{
-            this.canvasDemoCtx.beginPath();
-            this.canvasDemoCtx.arc(element.x, element.y, this.pensize+2, 0, Math.PI*2, true);
-            this.canvasDemoCtx.stroke();    
+        
+        path.forEach((element, index)=>{   
+            this.canvasDemoCtx.strokeStyle = "rgba(117,117,117)";
+            this.canvasDemoCtx.strokeRect(element.x-1, element.y-1, 3, 3);
+            this.canvasDemoCtx.fillStyle = "rgba(255,255,255)";
+            this.canvasDemoCtx.fillRect(element.x, element.y, 2, 2);
         })
         this.canvasDemoCtx.restore();
     }
 
-    //lineFromSpot(e, )
-    mousePointer(e, firstplot, endplot, boundary, lineDistance, pointToLine){
-        let node = boundary(e, firstplot, endplot, lineDistance, pointToLine);
-        switch(node){
-            case "core":
-                this.canvasDemo.style.cursor = "move";
-                break;
-            case "topleft":
-                this.canvasDemo.style.cursor = "nw-resize";
-                break;
-            case "lowerleft":
-                this.canvasDemo.style.cursor = "sw-resize";
-                break;
-            case "topright":
-                this.canvasDemo.style.cursor = "ne-resize";
-                break;
-            case "lowerright":
-                this.canvasDemo.style.cursor = "se-resize";
-                break;
-            case "top":
-                this.canvasDemo.style.cursor = "n-resize";
-                break;
-            case "lower":
-                this.canvasDemo.style.cursor = "n-resize";
-                break;
-            case "right":
-                this.canvasDemo.style.cursor = "w-resize";
-                break;
-            case "left":
-                this.canvasDemo.style.cursor = "w-resize";
-                break;
-            default:
-                this.canvasDemo.style.cursor = "default";
-        }
-    }
-
-    boundary(e, firstplot, endplot, lineDistance, pointToLine){
+    boundary(canvas, e, firstplot, endplot, lineDistance, pointToLine){
         let node = {x:e.layerX, y:e.layerY};
         if(e.layerX >= firstplot.x - 8 && e.layerX <= endplot.x +8 && e.layerY >= firstplot.y - 8 && e.layerY <= endplot.y + 8 ){
-            if(lineDistance(e, firstplot) <= 8){
+            if(lineDistance(node, firstplot) <= 8){
+                canvas.style.cursor = "nw-resize";
                 return "topleft";
             }
-            else if(lineDistance(e, endplot) <= 8){
+            else if(lineDistance(node, endplot) <= 8){
+                canvas.style.cursor = "se-resize";
                 return "lowerright";
             }
-            else if(lineDistance(e, {x:firstplot.x, y:endplot.y}) <= 8){
+            else if(lineDistance(node, {x:firstplot.x, y:endplot.y}) <= 8){
+                canvas.style.cursor = "sw-resize";
                 return "lowerleft";
             }
-            else if(lineDistance(e, {x:endplot.x, y:firstplot.y}) <= 8){
+            else if(lineDistance(node, {x:endplot.x, y:firstplot.y}) <= 8){
+                canvas.style.cursor = "ne-resize";
                 return "topright";
             }
             else if(pointToLine(firstplot, {x:firstplot.x, y:endplot.y}, node) <= 8 ){
+                canvas.style.cursor = "w-resize";
                 return "left";
             } 
             else if(pointToLine(firstplot, {x:endplot.x, y:firstplot.y}, node) <= 8 ){
+                canvas.style.cursor = "n-resize";
                 return "top";
             }
             else if(pointToLine(endplot, {x:endplot.x, y:firstplot.y}, node) <= 8 ){
+                canvas.style.cursor = "w-resize";
                 return "right";
             }
             else if(pointToLine(endplot, {x:firstplot.x, y:endplot.y}, node) <= 8 ){
+                canvas.style.cursor = "n-resize";
                 return "lower"
             }
             else{
+                canvas.style.cursor = "move";
                 return "core";
             }
         }
         else{
+            canvas.style.cursor = "default";
             return "default";
         }
+    }
+
+    //圆形函数
+    solidRound(canvas, firstplot, endplot){
+        canvas.beginPath();
+        canvas.ellipse((firstplot.x+endplot.x)/2, (firstplot.y+endplot.y)/2, (endplot.x - firstplot.x)/2, (endplot.y - firstplot.y)/2, 0, 0, Math.PI * 2);
+        canvas.lineWidth = this.pensize;
+        canvas.stroke();
+        canvas.closePath();
     }
 
     lineDistance(beginspot, endspot){    //点到点距离公式

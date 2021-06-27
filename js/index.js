@@ -40,12 +40,27 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush","eraser","rectangle"
+            "pencil","line","brush","eraser","rectangle","round"
         ];
         this.toolCurrent = "brush";
         this.pensize = 2;
         this.strokeColor = '#000';
         this.rubberIconSize = 8;    //橡皮图标显示
+
+        if (!CanvasRenderingContext2D.prototype.ellipse) {    //椭圆绘制函数
+            CanvasRenderingContext2D.prototype.ellipse = function(x, y, radiusX, radiusY, rotation, startAngle, endAngle,
+                anticlockwise) {
+                let r = radiusX > radiusY ? radiusX : radiusY; //用打的数为半径
+                let scaleX = radiusX / r; //计算缩放的x轴比例
+                let scaleY = radiusY / r; //计算缩放的y轴比例
+                this.save(); //保存副本                    
+                this.translate(x, y); //移动到圆心位置
+                this.rotate(rotation); //进行旋转
+                this.scale(scaleX, scaleY); //进行缩放
+                this.arc(0, 0, r, startAngle, endAngle, anticlockwise); //绘制圆形
+                this.restore(); //还原副本
+            }
+        }
     }
     //初始化canvas画布
     canvasInit(){
@@ -106,6 +121,7 @@ class Tools{
         this.canvasDemo.style.zIndex = "1";
         this.canvasDemoCtx = this.canvasDemo.getContext("2d");
         parentNode.appendChild(this.canvasDemo);
+
     }
     //设定画布放大缩小比
     setupCanvas(){
