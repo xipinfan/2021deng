@@ -37,14 +37,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     that.ppy = e.layerY;
                     that.ImageLayerNode.graffiti.call(that,e.layerX+1,e.layerY+1);
                     break;
-                case 'line':
-                    break;
                 case 'brush':
                     lastCoordinate.x = e.layerX;
                     lastCoordinate.y = e.layerY;
                     break;
                 case 'eraser':
                     that.ImageLayerNode.eliminate.call(that, e);    //所在区域方型涂白
+                default:
+                    break;
             };
             that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
         })
@@ -102,7 +102,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     element.addEventListener("click",function(e){
                         that.toolCurrent = that.tool[index-1];
                         that.canvasDemo.style.zIndex = 1;
-                        if(that.toolCurrent === "line"){    //判断按下的按钮是否为直线按钮，需要特殊画布
+                        that.canvasVideo.style.cursor = "default";
+                        if(that.toolCurrent === "line" || that.toolCurrent === "rectangle"){    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
                             that.canvasDemo.style.zIndex = 1001;
                         }
                         if(that.toolCurrent === "eraser"){    //当按下的为橡皮擦时改变鼠标样式
@@ -162,7 +163,16 @@ class Bind extends Tools{    //绑定事件类，继承主类
         })
     }
     canvasDemoBindInit(){    //虚拟框画布函数
-        let that = this, stay,  beginLine = {}, endLine = {},nodeState = false, controlnode = true, operation = false, beginmobile = {}, endmobile = {};
+        let that = this, stay,  
+            beginLine = {}, 
+            endLine = {},
+            nodeState = false, 
+            controlnode = true, 
+            operation = false, 
+            beginmobile = {}, 
+            endmobile = {},
+            firstplot = {},
+            endplot = {};
         //controlnode作为标记当前canvas状态的标记，true标识为划线状态，false为修改状态。nodeState为鼠标是否按下的标记，true为按下，false为未按下
         //operation作为按下鼠标之后是否在操作区域的标记，true为在，false不在
         this.canvasDemo.addEventListener("mousedown", function(e){
@@ -195,12 +205,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
             if(nodeState){    //当鼠标按下时
                 endLine.x = e.layerX;    //划线状态下记录终点
                 endLine.y = e.layerY;
+                firstplot = { x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y) };
+                endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
                 switch(that.toolCurrent){    //判断虚拟框
                     case "line":
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                         break;
                     default:
-                        that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //矩形框
+                        that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
                 }  
                 nodeState = false;    //记录鼠标抬起
             }
@@ -215,7 +227,15 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     endLine.x = e.layerX;    //记录结束路径
                     endLine.y = e.layerY;
                     that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
-                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx,beginLine, endLine);    //画线，之后可以用switch来分别画其他图形    
+                    firstplot = { x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y) };
+                    endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
+                    switch(that.toolCurrent){
+                        case "line":
+                            that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //画线，之后可以用switch来分别画其他图形
+                            break;
+                        default:
+                            that.ImageLayerNode.solidBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
+                    }
                 }
             }
             else{    //修改状态
@@ -224,7 +244,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
                         break;
                     default:
-                        that.ImageLayerNode.mousePointer.call(that, e, beginLine, endLine, that.ImageLayerNode.boundary);
+                        that.ImageLayerNode.mousePointer.call(that, e, firstplot, endplot, that.ImageLayerNode.boundary, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);
                 }
                 if(operation){    //按下区域为修改区域时
                     if(that.toolCurrent === "line"){     //直线特殊判断

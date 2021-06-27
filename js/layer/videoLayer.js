@@ -1,7 +1,6 @@
 class Canvas{
     //将视频投射到画布上
     openCanvasVideo(){
-        console.log(this.backstageVideo);
         let that = this;
         let inputVideo = document.querySelector('input');
         this.backstageVideo.src = window.URL.createObjectURL(inputVideo.files[0]);    //获取视频所在路径并播放

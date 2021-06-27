@@ -40,12 +40,11 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush","eraser"
+            "pencil","line","brush","eraser","rectangle"
         ];
         this.toolCurrent = "brush";
         this.pensize = 2;
         this.strokeColor = '#000';
-
         this.rubberIconSize = 8;    //橡皮图标显示
     }
     //初始化canvas画布
