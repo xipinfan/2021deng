@@ -46,6 +46,8 @@ class Tools{
         this.pensize = 2;
         this.strokeColor = '#000';
         this.rubberIconSize = 8;    //橡皮图标显示
+        this.translateX = 0;
+        this.translateY = 0;
 
         if (!CanvasRenderingContext2D.prototype.ellipse) {    //椭圆绘制函数
             CanvasRenderingContext2D.prototype.ellipse = function(x, y, radiusX, radiusY, rotation, startAngle, endAngle,

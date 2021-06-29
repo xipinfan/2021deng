@@ -14,7 +14,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.forwardData = [];    //保存每一次回撤前的图像
         this.ImageLayerNode = new ImageLayer();      //导入工具类
         this.CanvasNode = new Canvas();  
-        this.centralPoint = {};
+        this.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
     }
     videoBindingInit(){
         let that = this;    //保存this作用域
@@ -82,21 +82,50 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let that = this;
         document.querySelectorAll("#flipButton>button").forEach((element,index)=>{
             element.addEventListener("click",function(e){
-                switch(element.id){
-                    case "clockwise":
-                        console.log(that.centralPoint);
-                        //that.canvasDemoCtx.save();
-                        //that.canvasDemoCtx.translate(that.centralPoint.x, that.centralPoint.y);
-                        that.canvasDemoCtx.translate(0, 0);
-                        that.canvasDemoCtx.rotate(Math.PI*2/6);
-                        //that.canvasDemoCtx.restore();
-                        break;
-                    case "anticlockwise":
-                    case "reversal":
-                    case "flip":
+                let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };
+                let x = (that.centralPoint.x2 - that.centralPoint.x1)/2, y = (that.centralPoint.y2 - that.centralPoint.y1)/2 ;
+                that.canvasDemoCtx.rotate(30*Math.PI/180);
+                if(that.centralPoint.x1 !== -1){
+                    switch(element.id){
+                        case "clockwise":
+                            //shapeFlip( {x: middle.x - y , y: middle.y - x}, {x: middle.x + y , y: middle.y + x} );
+                            shapeFlip( {x: that.centralPoint.x1 , y: that.centralPoint.y1}, {x: that.centralPoint.x2 , y: that.centralPoint.y2} );
+                            break;
+                        case "anticlockwise":
+                            //shapeFlip( {x: middle.x - y , y: middle.y - x}, {x: middle.x + y , y: middle.y + x} );
+                            shapeFlip( {x: that.centralPoint.x1 , y: that.centralPoint.y1}, {x: that.centralPoint.x2 , y: that.centralPoint.y2} );
+                            break;
+                        case "reversal":
+                        case "flip":
+                    }    
                 }
             })
         })
+        function shapeFlip( beginLine, endLine ){
+            let x = (beginLine.x + endLine.x)/2 , y = (beginLine.y + endLine.y)/2, diffx = (endLine.x - beginLine.x)/2, diffy = (endLine.y - beginLine.y)/2;
+            that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
+            switch(that.toolCurrent){
+                case "line":
+                    that.canvasDemoCtx.save();
+                    that.canvasDemoCtx.translate(x, y);
+                    that.canvasDemoCtx.rotate(90*Math.PI/180);
+                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, {x: -diffx, y: -diffy}, {x: diffx, y: diffy});    //重绘直线
+                    that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
+
+                    break;
+                case "rectangle":
+                    that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, beginLine.x, beginLine.y, endLine.x, endLine.y);    //矩形框
+                    that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
+                    break;
+                case "round":
+                    that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, beginLine, endLine);    //圆形
+                    that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
+                    break;
+                
+            }
+            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
+        }
+        
         document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
             switch(element.id){
                 case 'white':
@@ -213,8 +242,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     operation = true;    //当前已经在区域中按下的标记
                 }
                 else{
-                    that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除虚拟画布
+                    that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+                    that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
                     switch(that.toolCurrent){
                         case "line":
                             that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);      //将直线数据记录在主canvas画布上
@@ -255,21 +285,21 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 if(nodeState){
                     endLine.x = e.layerX;    //记录结束路径
                     endLine.y = e.layerY;
-                    that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
+                    that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
                     firstplot = { x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y) };
                     endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
                     switch(that.toolCurrent){
                         case "line":
                             that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //画线，之后可以用switch来分别画其他图形
-                            that.centralPoint = {x:(beginLine.x + endLine.y)/2, y:(beginLine.y + endLine.y)/2};
+                            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
                             break;
                         case "rectangle":
                             that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
-                            that.centralPoint = {x:(firstplot.x + endplot.y)/2, y:(firstplot.y + endplot.y)/2};
+                            that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                             break;
                         case "round":
                             that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
-                            that.centralPoint = {x:(firstplot.x + endplot.y)/2, y:(firstplot.y + endplot.y)/2};
+                            that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                             break;
                     }
                 }
@@ -306,9 +336,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 endLine.y += endmobile.y;
                                 break;
                         }
-                        that.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除画布
+                        that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
                         that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //重绘直线
-                        that.centralPoint = {x:(beginLine.x + endLine.y)/2, y:(beginLine.y + endLine.y)/2};
+                        that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                     }
                     else{
@@ -349,8 +379,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 firstplot.x += endmobile.x;
                                 break;
                         }
-                        that.canvasDemoCtx.clearRect(0,0,this.width,this.height);
-                        that.centralPoint = {x:(firstplot.x + endplot.y)/2, y:(firstplot.y + endplot.y)/2};
+                        that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
+                        that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                         switch(that.toolCurrent){
                             case "rectangle":
                                 that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
