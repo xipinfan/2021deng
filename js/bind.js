@@ -84,41 +84,38 @@ class Bind extends Tools{    //绑定事件类，继承主类
             element.addEventListener("click",function(e){
                 let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };
                 let x = (that.centralPoint.x2 - that.centralPoint.x1)/2, y = (that.centralPoint.y2 - that.centralPoint.y1)/2 ;
-                that.canvasDemoCtx.rotate(30*Math.PI/180);
                 if(that.centralPoint.x1 !== -1){
                     switch(element.id){
                         case "clockwise":
-                            //shapeFlip( {x: middle.x - y , y: middle.y - x}, {x: middle.x + y , y: middle.y + x} );
-                            shapeFlip( {x: that.centralPoint.x1 , y: that.centralPoint.y1}, {x: that.centralPoint.x2 , y: that.centralPoint.y2} );
+                            shapeFlip( {x: middle.x + y , y: middle.y - x}, {x: middle.x - y , y: middle.y + x} );
                             break;
                         case "anticlockwise":
-                            //shapeFlip( {x: middle.x - y , y: middle.y - x}, {x: middle.x + y , y: middle.y + x} );
-                            shapeFlip( {x: that.centralPoint.x1 , y: that.centralPoint.y1}, {x: that.centralPoint.x2 , y: that.centralPoint.y2} );
+                            shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
                             break;
                         case "reversal":
+                            shapeFlip( {x: middle.x - x , y: middle.y - y}, {x: middle.x + x , y: middle.y + y} );
+                            break;
                         case "flip":
+                            console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
                     }    
                 }
             })
         })
         function shapeFlip( beginLine, endLine ){
-            let x = (beginLine.x + endLine.x)/2 , y = (beginLine.y + endLine.y)/2, diffx = (endLine.x - beginLine.x)/2, diffy = (endLine.y - beginLine.y)/2;
             that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
+            let minbegin = {x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y)};
+            let maxend = {x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y)};
             switch(that.toolCurrent){
                 case "line":
-                    that.canvasDemoCtx.save();
-                    that.canvasDemoCtx.translate(x, y);
-                    that.canvasDemoCtx.rotate(90*Math.PI/180);
-                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, {x: -diffx, y: -diffy}, {x: diffx, y: diffy});    //重绘直线
+                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //重绘直线
                     that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
-
-                    break;
+                    break
                 case "rectangle":
                     that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, beginLine.x, beginLine.y, endLine.x, endLine.y);    //矩形框
                     that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
                     break;
                 case "round":
-                    that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, beginLine, endLine);    //圆形
+                    that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, minbegin, maxend);    //圆形
                     that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
                     break;
                 
@@ -156,6 +153,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         if(that.toolCurrent === "eraser"){    //当按下的为橡皮擦时改变鼠标样式
                             let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
                             that.canvasVideo.style.cursor = "url("+ str +"),move";
+                        }
+                        if(that.toolCurrent === "bucket"){
+                            that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
                         }
                     })
             }
@@ -244,7 +244,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 else{
                     that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
-                    that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
                     switch(that.toolCurrent){
                         case "line":
                             that.ImageLayerNode.drawDemoLine.call(that, that.canvasVideoCtx, beginLine, endLine);      //将直线数据记录在主canvas画布上
@@ -256,7 +255,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.ImageLayerNode.solidRound.call(that, that.canvasVideoCtx, firstplot, endplot);    //圆形
                             break;
                     }
-                    
+                    that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
                 }
             }
         });
@@ -268,9 +267,11 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
                 switch(that.toolCurrent){    //判断虚拟框
                     case "line":
+                        that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线提示框
                         break;
                     default:
+                        that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                         that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
                 }  
                 nodeState = false;    //记录鼠标抬起
@@ -291,20 +292,23 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     switch(that.toolCurrent){
                         case "line":
                             that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //画线，之后可以用switch来分别画其他图形
-                            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
                             break;
                         case "rectangle":
                             that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
-                            that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                             break;
                         case "round":
                             that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
-                            that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                             break;
                     }
                 }
             }
             else{    //修改状态
+                if(!operation && that.centralPoint !== -1){
+                    beginLine = {x:that.centralPoint.x1, y:that.centralPoint.y1};
+                    endLine = {x:that.centralPoint.x2, y:that.centralPoint.y2};
+                    firstplot = { x:Math.min(that.centralPoint.x1,that.centralPoint.x2),y:Math.min(that.centralPoint.y1,that.centralPoint.y2) };
+                    endplot = { x:Math.max(that.centralPoint.x1,that.centralPoint.x2),y:Math.max(that.centralPoint.y1,that.centralPoint.y2) };
+                }
                 switch(that.toolCurrent){    //判断图形类型
                     case "line":
                         that.ImageLayerNode.mousePointLine(e, beginLine, endLine, that.canvasDemo);
