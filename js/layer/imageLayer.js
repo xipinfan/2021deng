@@ -27,17 +27,19 @@ class ImageLayer{    //图像处理工具类
             this.canvasVideoCtx.putImageData(forwarddatenode, 0, 0);    //将当前canvas数据替换为数组中的canvas数据
         }
     }
+    extractPixels(canvas ,x, y){    //提取颜色
+        let pixel = canvas.getImageData(x, y, 1, 1);
+        let data = pixel.data;
+        return `RGB(${data[0]},${data[1]},${data[2]})`;
+    }
     //刷子函数
     drawLine(x1, y1, x2, y2){     //连接路径
         this.canvasVideoCtx.beginPath();
-
-        this.canvasVideoCtx.moveTo(x1,y1);
-        this.canvasVideoCtx.lineTo(x2,y2);
         this.canvasVideoCtx.lineWidth = this.pensize;    //设置线条宽度。
         this.canvasVideoCtx.lineCap = 'round';   //设置线条末端样式。
         this.canvasVideoCtx.lineJoin = 'round';    //设定线条与线条间接合处的样式。
-        this.canvasVideoCtx.strokStyle = this.strokeColor || '#000';
-
+        this.canvasVideoCtx.moveTo(x1,y1);
+        this.canvasVideoCtx.lineTo(x2,y2);
         this.canvasVideoCtx.stroke();
     }
 

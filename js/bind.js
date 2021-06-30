@@ -29,6 +29,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
             lastCoordinate = {};
         let xbind = document.querySelector("#x1");    //显示当前鼠标所在的坐标点
         let ybind = document.querySelector('#y1');
+        let colorto = document.querySelector('#rgb');    //获取展示项
+        let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
         this.canvasVideo.addEventListener("mousedown",function(e){    //当鼠标在canvas按下的时候开始记录路径，且保存初始画面
             that.penstate = true;
             switch(that.toolCurrent){
@@ -44,6 +46,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     break;
                 case 'eraser':
                     that.ImageLayerNode.eliminate.call(that, e);    //所在区域方型涂白
+                case 'extract':
+                    let RGB = that.ImageLayerNode.extractPixels(that.canvasVideoCtx , e.layerX, e.layerY);    //提取颜色
+                    colorto.innerHTML = RGB;
+                    colorchoice.value = RGB.colorHex();
                 default:
                     break;
             };
@@ -80,6 +86,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
     }
     canvasButtonBindInit(){
         let that = this;
+        let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
+        let colorto = document.querySelector('#rgb');    //获取展示项
+        colorto.innerHTML = "RGB(0,0,0)";
         document.querySelectorAll("#flipButton>button").forEach((element,index)=>{
             element.addEventListener("click",function(e){
                 let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };
@@ -157,6 +166,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         if(that.toolCurrent === "bucket"){
                             that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
                         }
+                        if(that.toolCurrent === "extract"){
+                            that.canvasVideo.style.cursor = "crosshair";
+                        }
                     })
             }
         })
@@ -190,6 +202,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 }
             })
         });
+        colorchoice.addEventListener("input",function(e){
+            colorto.innerHTML = this.value.toLowerCase().colorRgb();
+            that.strokeColor = this.value.toLowerCase();
+            that.canvasVideoCtx.fillStyle  = that.strokeColor;
+            that.canvasVideoCtx.strokeStyle  = that.strokeColor;
+            that.canvasDemoCtx.fillStyle  = that.strokeColor;
+            that.canvasDemoCtx.strokeStyle  = that.strokeColor;
+        })
     }
     videoButtonBindInit(){
         let that = this;    //保存this作用域
