@@ -191,6 +191,12 @@ class Tools{
         this.canvasVideoCtx = this.canvasVideo.getContext('2d');
         this.width=this.canvasVideo.width;
         this.height=this.canvasVideo.height;
+        this.canvasVideoCtx.lineCap = 'round';   //设置线条末端样式。
+        this.canvasDemoCtx.lineCap = 'round';   //设置线条末端样式。
+        this.canvasVideoCtx.lineJoin = 'round';    //设定线条与线条间接合处的样式。
+        this.canvasDemoCtx.lineJoin = 'round';    //设定线条与线条间接合处的样式。
+        this.canvasVideoCtx.lineWidth = this.pensize;
+        this.canvasDemoCtx.lineWidth = this.pensize;
     }
     //设置初始图片
     lableFound(){

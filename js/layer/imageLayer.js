@@ -14,7 +14,6 @@ class ImageLayer{    //图像处理工具类
             //this.canvasVideoCtx.beginPath();
             this.canvasVideoCtx.moveTo(this.ppx,this.ppy);    //开始的坐标
             this.canvasVideoCtx.lineTo(x,y);    //到达的坐标
-            this.canvasVideoCtx.lineWidth = this.pensize;
             this.canvasVideoCtx.stroke();    //绘制直线
             this.ppx = x;    //记录坐标
             this.ppy = y;
@@ -27,17 +26,23 @@ class ImageLayer{    //图像处理工具类
             this.canvasVideoCtx.putImageData(forwarddatenode, 0, 0);    //将当前canvas数据替换为数组中的canvas数据
         }
     }
-    extractPixels(canvas ,x, y){    //提取颜色
+    extractPixels(canvas, x, y){    //提取颜色
         let pixel = canvas.getImageData(x, y, 1, 1);
         let data = pixel.data;
         return `RGB(${data[0]},${data[1]},${data[2]})`;
     }
+
+    paintBucket(canvas, x, y){
+
+    }
+
+    rgbToGray(r, g, b) { // 计算灰度值
+		return r * 0.299 + g * 0.587 + b * 0.114;
+	}
+
     //刷子函数
     drawLine(x1, y1, x2, y2){     //连接路径
         this.canvasVideoCtx.beginPath();
-        this.canvasVideoCtx.lineWidth = this.pensize;    //设置线条宽度。
-        this.canvasVideoCtx.lineCap = 'round';   //设置线条末端样式。
-        this.canvasVideoCtx.lineJoin = 'round';    //设定线条与线条间接合处的样式。
         this.canvasVideoCtx.moveTo(x1,y1);
         this.canvasVideoCtx.lineTo(x2,y2);
         this.canvasVideoCtx.stroke();
@@ -47,13 +52,10 @@ class ImageLayer{    //图像处理工具类
     drawDemoLine(canvas,beginLine,endLine){
     
         canvas.beginPath();
-
+        
         canvas.moveTo(beginLine.x,beginLine.y);
         canvas.lineTo(endLine.x, endLine.y);
-        canvas.lineCap = 'round';   //设置线条末端样式。
-        canvas.lineWidth = this.pensize;    //设置线条宽度。
-        canvas.strokStyle = this.strokeColor || '#000';
-        
+
         canvas.stroke();
     }
 
@@ -111,9 +113,9 @@ class ImageLayer{    //图像处理工具类
     solidBox(canvas, x1, y1, x2, y2){    //实线矩形框
         canvas.save();
         canvas.beginPath();
+        canvas.lineCap = 'butt';   //设置线条末端样式。
         let x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x1 - x2), h = Math.abs(y1 - y2);  
         canvas.strokeStyle = this.strokeColor;
-        canvas.lineWidth = this.pensize;    //设置线条宽度。
         canvas.strokeRect(x, y, w, h);
         canvas.restore();
     }
@@ -193,7 +195,6 @@ class ImageLayer{    //图像处理工具类
     solidRound(canvas, firstplot, endplot){
         canvas.beginPath();
         canvas.ellipse((firstplot.x+endplot.x)/2, (firstplot.y+endplot.y)/2, (endplot.x - firstplot.x)/2, (endplot.y - firstplot.y)/2, 0, 0, Math.PI * 2);
-        canvas.lineWidth = this.pensize;
         canvas.stroke();
         canvas.closePath();
     }

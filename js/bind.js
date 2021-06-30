@@ -46,10 +46,15 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     break;
                 case 'eraser':
                     that.ImageLayerNode.eliminate.call(that, e);    //所在区域方型涂白
+                    break;
                 case 'extract':
                     let RGB = that.ImageLayerNode.extractPixels(that.canvasVideoCtx , e.layerX, e.layerY);    //提取颜色
                     colorto.innerHTML = RGB;
                     colorchoice.value = RGB.colorHex();
+                    break;
+                case "bucket":
+                    that.ImageLayerNode.paintBucket(that.canvasVideoCtx, e.layerX, e.layerY);
+                    break;
                 default:
                     break;
             };
@@ -78,6 +83,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         break;
                     case 'eraser':
                         that.ImageLayerNode.eliminate.call(that, e);   //所在区域方型涂白
+                        break;
                 };
             }
             xbind.innerHTML = e.layerX;
@@ -155,19 +161,32 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     element.addEventListener("click",function(e){
                         that.toolCurrent = that.tool[index-1];
                         that.canvasDemo.style.zIndex = 1;
-                        that.canvasVideo.style.cursor = "default";
-                        if(that.toolCurrent === "line" || that.toolCurrent === "rectangle" || that.toolCurrent === "round"){    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
-                            that.canvasDemo.style.zIndex = 1001;
+                        that.canvasVideo.style.cursor = "default";                  
+                        switch(that.toolCurrent){
+                            case "rectangle":
+                                that.canvasVideoCtx.lineCap = 'butt';    //设定线条与线条间接合处的样式。
+                                that.canvasDemoCtx.lineCap = 'butt';    //设定线条与线条间接合处的样式。
+                                break;
+                            default:
+                                that.canvasVideoCtx.lineCap = 'round'; 
+                                that.canvasDemoCtx.lineCap = 'round';    //设定线条与线条间接合处的样式。
                         }
-                        if(that.toolCurrent === "eraser"){    //当按下的为橡皮擦时改变鼠标样式
-                            let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
-                            that.canvasVideo.style.cursor = "url("+ str +"),move";
-                        }
-                        if(that.toolCurrent === "bucket"){
-                            that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
-                        }
-                        if(that.toolCurrent === "extract"){
-                            that.canvasVideo.style.cursor = "crosshair";
+                        switch(that.toolCurrent){
+                            case "line":
+                            case "rectangle":
+                            case "round":
+                                that.canvasDemo.style.zIndex = 1001;    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
+                                break;
+                            case "eraser":
+                                let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
+                                that.canvasVideo.style.cursor = "url("+ str +"),move";
+                                break;
+                            case "bucket":
+                                that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
+                                break;
+                            case "extract":
+                                that.canvasVideo.style.cursor = "crosshair";
+                                break;
                         }
                     })
             }
@@ -196,6 +215,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         }
                         break;
                 }
+                that.canvasVideoCtx.lineWidth = that.pensize;
+                that.canvasDemoCtx.lineWidth = that.pensize;
                 if(that.toolCurrent === "eraser"){
                     let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
                     that.canvasVideo.style.cursor = "url("+ str +"),move";
