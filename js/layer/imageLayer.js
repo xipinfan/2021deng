@@ -177,21 +177,40 @@ class ImageLayer{    //图像处理工具类
 
     boundary(canvas, e, firstplot, endplot, lineDistance, pointToLine){
         let node = {x:e.layerX, y:e.layerY};
-        if(e.layerX >= firstplot.x - 8 && e.layerX <= endplot.x +8 && e.layerY >= firstplot.y - 8 && e.layerY <= endplot.y + 8 ){
-            if(lineDistance(node, firstplot) <= 8){
+        let minx = Math.min(firstplot.x, endplot.x), miny = Math.min(firstplot.y, endplot.y), 
+            maxx = Math.max(firstplot.x, endplot.x), maxy = Math.max(firstplot.y, endplot.y);
+        if(e.layerX >= minx - 8 && e.layerX <= maxx + 8 && e.layerY + 8 >= miny && e.layerY <= maxy + 8 ){
+            if(lineDistance(node, {x:minx, y:miny}) <= 8){
                 canvas.style.cursor = "nw-resize";
                 return "topleft";
             }
-            else if(lineDistance(node, endplot) <= 8){
+            else if(lineDistance(node, {x:maxx, y:maxy}) <= 8){
                 canvas.style.cursor = "se-resize";
                 return "lowerright";
             }
-            else if(lineDistance(node, {x:firstplot.x, y:endplot.y}) <= 8){
+            else if(lineDistance(node, {x:minx, y:maxy}) <= 8){
                 canvas.style.cursor = "sw-resize";
                 return "lowerleft";
             }
-            else if(lineDistance(node, {x:endplot.x, y:firstplot.y}) <= 8){
+            else if(lineDistance(node, {x:maxx, y:miny}) <= 8){
                 canvas.style.cursor = "ne-resize";
+                return "topright";
+            }
+
+            if(lineDistance(node, firstplot) <= 8){
+                //canvas.style.cursor = "nw-resize";
+                return "topleft";
+            }
+            else if(lineDistance(node, endplot) <= 8){
+                //canvas.style.cursor = "se-resize";
+                return "lowerright";
+            }
+            else if(lineDistance(node, {x:firstplot.x, y:endplot.y}) <= 8){
+                //canvas.style.cursor = "sw-resize";
+                return "lowerleft";
+            }
+            else if(lineDistance(node, {x:endplot.x, y:firstplot.y}) <= 8){
+                //canvas.style.cursor = "ne-resize";
                 return "topright";
             }
             else if(pointToLine(firstplot, {x:firstplot.x, y:endplot.y}, node) <= 8 ){
@@ -229,8 +248,25 @@ class ImageLayer{    //图像处理工具类
         canvas.closePath();
     }
 
-    solidRightTriangle(canvas, firstplot, endplot){
-        
+    solidTriangle(canvas, firstplot, endplot){
+
+        let right = { x:firstplot.x, y:endplot.y };
+        canvas.beginPath();
+        canvas.moveTo(firstplot.x,firstplot.y);
+        canvas.lineTo(right.x, right.y);
+        canvas.lineTo(endplot.x, endplot.y);
+        canvas.closePath();
+        canvas.stroke();
+    }
+    isoscelesTriangle(canvas, firstplot, endplot){
+
+        let right = { x:firstplot.x, y:endplot.y };
+        canvas.beginPath();
+        canvas.moveTo((firstplot.x + endplot.x)/2,firstplot.y);
+        canvas.lineTo(right.x, right.y);
+        canvas.lineTo(endplot.x, endplot.y);
+        canvas.closePath();
+        canvas.stroke();
     }
 
     lineDistance(beginspot, endspot){    //点到点距离公式

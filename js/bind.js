@@ -16,7 +16,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.CanvasNode = new Canvas();  
         this.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
     }
-    videoBindingInit(){
+    videoBindingInit(){    //视频初始
         let that = this;    //保存this作用域
         this.backstageVideo.addEventListener('canplay',function(){        //准备就绪视频时调用，开启canvas打印video图像
             that.canvasVideoTape.width = this.videoWidth;
@@ -24,7 +24,183 @@ class Bind extends Tools{    //绑定事件类，继承主类
             that.CanvasNode.onloadOpenVideo.call(that,this.videoWidth,this.videoHeight);
         })
     }
-    canvasBindInit(){
+    videoButtonBindInit(){    //视频指令绑定
+        let that = this;    //保存this作用域
+        document.querySelector('#play1').addEventListener("click",function(e){    //播放视频
+            that.backstageVideo.play(); 
+        })
+        document.querySelector('#pause').addEventListener("click",function(e){    //停止播放视频
+            that.backstageVideo.pause();
+        })
+        document.querySelector('#inputVido').addEventListener("change",function(e){    //插入视频
+            that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
+        })
+        document.querySelector('#recording').addEventListener("click",function(e){    //开启视频录制
+            that.CanvasNode.recordingVideo.call(that);
+        })
+        document.querySelector("#stop").addEventListener("click",function(e){    //停止视频录制
+            that.CanvasNode.stopRecordingVideo.call(that);
+        })
+    }
+    canvasButtonBindInit(){    //图像指令绑定
+        let that = this;
+        let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
+        let colorto = document.querySelector('#rgb');    //获取展示项
+        colorto.innerHTML = "RGB(0,0,0)";
+        document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
+            switch(element.id){
+                case 'white':
+                    element.addEventListener("click",function(e){    //初始化画板
+                        that.ImageLayerNode.whiteBoard.call(that);
+                        that.ImageData = [];
+                        that.forwardData = [];
+                    })
+                    break;
+                case 'withdraw':
+                    element.addEventListener("click",function(e){    //回退图像
+                        that.ImageLayerNode.updownImage.call(that, that.ImageData, that.forwardData);
+                    })
+                    break;
+                case 'forward':
+                    element.addEventListener("click",function(e){    //前进图像
+                        that.ImageLayerNode.updownImage.call(that, that.forwardData, that.ImageData);
+                    })
+                    break;
+                default:
+                    element.addEventListener("click",function(e){
+                        that.toolCurrent = that.tool[index-1];
+                        that.canvasDemo.style.zIndex = 1;
+                        that.canvasVideo.style.cursor = "default";                  
+                        switch(that.toolCurrent){
+                            case "rightTriangle":
+                            case "isosceles":
+                            case "rectangle":
+                                that.canvasVideoCtx.lineJoin = 'miter';    //设定线条与线条间接合处的样式。
+                                that.canvasDemoCtx.lineJoin = 'miter';
+                                break;
+                            default:
+                                that.canvasVideoCtx.lineJoin = 'round';    //设定线条与线条间接合处的样式。
+                                that.canvasDemoCtx.lineJoin = 'round';
+                        }
+                        switch(that.toolCurrent){
+                            case "line":
+                            case "rectangle":
+                            case "rightTriangle":
+                            case "isosceles":
+                            case "round":
+                                that.canvasDemo.style.zIndex = 1001;    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
+                                break;
+                            case "eraser":
+                                let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
+                                that.canvasVideo.style.cursor = "url("+ str +"),move";
+                                break;
+                            case "bucket":
+                                that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
+                                break;
+                            case "extract":
+                                that.canvasVideo.style.cursor = "crosshair";
+                                break;
+                        }
+                    })
+            }
+        })
+        document.querySelectorAll('#sb1>input[type=button]').forEach(element => {
+            element.addEventListener("click",function(e){
+                switch(e.path[0].id){
+                    case "addfontsize":    //画笔粗细控制
+                        if(that.pensize<=12){
+                            that.pensize += 2;
+                        }
+                        break;
+                    case "reducefontsize":
+                        if(that.pensize >= 4){
+                            that.pensize -= 2;
+                        }
+                        break; 
+                    case "eraserenlarge":    //橡皮粗细控制
+                        if(that.rubberIconSize < 20){
+                            that.rubberIconSize += 4;
+                        }
+                        break;
+                    case "erasernarrow":
+                        if(that.rubberIconSize > 4){
+                            that.rubberIconSize -= 4;
+                        }
+                        break;
+                }
+                that.canvasVideoCtx.lineWidth = that.pensize;
+                that.canvasDemoCtx.lineWidth = that.pensize;
+                if(that.toolCurrent === "eraser"){
+                    let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
+                    that.canvasVideo.style.cursor = "url("+ str +"),move";
+                }
+            })
+        });
+        colorchoice.addEventListener("input",function(e){
+            colorto.innerHTML = this.value.toLowerCase().colorRgb();
+            that.strokeColor = this.value.toLowerCase();
+            that.canvasVideoCtx.fillStyle  = that.strokeColor;
+            that.canvasVideoCtx.strokeStyle  = that.strokeColor;
+            that.canvasDemoCtx.fillStyle  = that.strokeColor;
+            that.canvasDemoCtx.strokeStyle  = that.strokeColor;
+        })
+        document.querySelectorAll("#flipButton>button").forEach((element,index)=>{
+            element.addEventListener("click",function(e){
+                let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };
+                let x = (that.centralPoint.x2 - that.centralPoint.x1)/2, y = (that.centralPoint.y2 - that.centralPoint.y1)/2 ;
+                if(that.centralPoint.x1 !== -1){
+                    switch(element.id){
+                        case "clockwise":
+                            shapeFlip( {x: middle.x + y , y: middle.y - x}, {x: middle.x - y , y: middle.y + x} );
+                            that.directionIndex ++;
+                            break;
+                        case "anticlockwise":
+                            shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
+                            that.directionIndex --;
+                            break;
+                        case "reversal":
+                            shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
+                            that.directionIndex += 2;
+                            break;
+                        case "flip":
+                            console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
+                            let d = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
+                            console.log(d);
+                    }    
+                    if(that.directionIndex < 0)that.directionIndex += that.direction.length;
+                    if(that.directionIndex > 3)that.directionIndex -= that.direction.length;
+                }
+            })
+        })
+        function shapeFlip( beginLine, endLine ){
+            that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
+            let minbegin = {x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y)};
+            let maxend = {x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y)};
+            switch(that.toolCurrent){
+                case "line":
+                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //重绘直线
+                    that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
+                    break
+                case "rectangle":
+                    that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, beginLine.x, beginLine.y, endLine.x, endLine.y);    //矩形框
+                    break;
+                case "round":
+                    that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, minbegin, maxend);    //圆形
+                    break;
+                case "rightTriangle":
+                    that.ImageLayerNode.solidTriangle.call(that, that.canvasDemoCtx, beginLine, endLine);    //直角三角形
+                    break;
+                case "isosceles":
+                    that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasDemoCtx, beginLine, endLine);    //等腰三角形
+                    break;
+            }
+            if(that.toolCurrent !== "line"){
+                that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
+            }
+            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
+        }
+    }
+    canvasBindInit(){    //基础画布函数
         let that = this,
             lastCoordinate = {};
         let xbind = document.querySelector("#x1");    //显示当前鼠标所在的坐标点
@@ -92,169 +268,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
             ybind.innerHTML = e.layerY;
         })
     }
-    canvasButtonBindInit(){
-        let that = this;
-        let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
-        let colorto = document.querySelector('#rgb');    //获取展示项
-        colorto.innerHTML = "RGB(0,0,0)";
-        document.querySelectorAll("#flipButton>button").forEach((element,index)=>{
-            element.addEventListener("click",function(e){
-                let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };
-                let x = (that.centralPoint.x2 - that.centralPoint.x1)/2, y = (that.centralPoint.y2 - that.centralPoint.y1)/2 ;
-                if(that.centralPoint.x1 !== -1){
-                    switch(element.id){
-                        case "clockwise":
-                            shapeFlip( {x: middle.x + y , y: middle.y - x}, {x: middle.x - y , y: middle.y + x} );
-                            break;
-                        case "anticlockwise":
-                            shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
-                            break;
-                        case "reversal":
-                            shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
-                            break;
-                        case "flip":
-                            console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
-                            let d = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
-                            console.log(d);
-                    }    
-                }
-            })
-        })
-        function shapeFlip( beginLine, endLine ){
-            that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
-            let minbegin = {x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y)};
-            let maxend = {x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y)};
-            switch(that.toolCurrent){
-                case "line":
-                    that.ImageLayerNode.drawDemoLine.call(that, that.canvasDemoCtx, beginLine, endLine);    //重绘直线
-                    that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
-                    break
-                case "rectangle":
-                    that.ImageLayerNode.solidBox.call(that, that.canvasDemoCtx, beginLine.x, beginLine.y, endLine.x, endLine.y);    //矩形框
-                    that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
-                    break;
-                case "round":
-                    that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, minbegin, maxend);    //圆形
-                    that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
-                    break;
-                
-            }
-            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
-        }
-        
-        document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
-            switch(element.id){
-                case 'white':
-                    element.addEventListener("click",function(e){    //初始化画板
-                        that.ImageLayerNode.whiteBoard.call(that);
-                        that.ImageData = [];
-                        that.forwardData = [];
-                    })
-                    break;
-                case 'withdraw':
-                    element.addEventListener("click",function(e){    //回退图像
-                        that.ImageLayerNode.updownImage.call(that, that.ImageData, that.forwardData);
-                    })
-                    break;
-                case 'forward':
-                    element.addEventListener("click",function(e){    //前进图像
-                        that.ImageLayerNode.updownImage.call(that, that.forwardData, that.ImageData);
-                    })
-                    break;
-                default:
-                    element.addEventListener("click",function(e){
-                        that.toolCurrent = that.tool[index-1];
-                        that.canvasDemo.style.zIndex = 1;
-                        that.canvasVideo.style.cursor = "default";                  
-                        switch(that.toolCurrent){
-                            case "rectangle":
-                                that.canvasVideoCtx.lineCap = 'butt';    //设定线条与线条间接合处的样式。
-                                that.canvasDemoCtx.lineCap = 'butt';    //设定线条与线条间接合处的样式。
-                                break;
-                            default:
-                                that.canvasVideoCtx.lineCap = 'round'; 
-                                that.canvasDemoCtx.lineCap = 'round';    //设定线条与线条间接合处的样式。
-                        }
-                        switch(that.toolCurrent){
-                            case "line":
-                            case "rectangle":
-                            case "rightTriangle":
-                            case "round":
-                                that.canvasDemo.style.zIndex = 1001;    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
-                                break;
-                            case "eraser":
-                                let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
-                                that.canvasVideo.style.cursor = "url("+ str +"),move";
-                                break;
-                            case "bucket":
-                                that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
-                                break;
-                            case "extract":
-                                that.canvasVideo.style.cursor = "crosshair";
-                                break;
-                        }
-                    })
-            }
-        })
-        document.querySelectorAll('#sb1>input[type=button]').forEach(element => {
-            element.addEventListener("click",function(e){
-                switch(e.path[0].id){
-                    case "addfontsize":    //画笔粗细控制
-                        if(that.pensize<=12){
-                            that.pensize += 2;
-                        }
-                        break;
-                    case "reducefontsize":
-                        if(that.pensize >= 4){
-                            that.pensize -= 2;
-                        }
-                        break; 
-                    case "eraserenlarge":    //橡皮粗细控制
-                        if(that.rubberIconSize < 20){
-                            that.rubberIconSize += 4;
-                        }
-                        break;
-                    case "erasernarrow":
-                        if(that.rubberIconSize > 4){
-                            that.rubberIconSize -= 4;
-                        }
-                        break;
-                }
-                that.canvasVideoCtx.lineWidth = that.pensize;
-                that.canvasDemoCtx.lineWidth = that.pensize;
-                if(that.toolCurrent === "eraser"){
-                    let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
-                    that.canvasVideo.style.cursor = "url("+ str +"),move";
-                }
-            })
-        });
-        colorchoice.addEventListener("input",function(e){
-            colorto.innerHTML = this.value.toLowerCase().colorRgb();
-            that.strokeColor = this.value.toLowerCase();
-            that.canvasVideoCtx.fillStyle  = that.strokeColor;
-            that.canvasVideoCtx.strokeStyle  = that.strokeColor;
-            that.canvasDemoCtx.fillStyle  = that.strokeColor;
-            that.canvasDemoCtx.strokeStyle  = that.strokeColor;
-        })
-    }
-    videoButtonBindInit(){
-        let that = this;    //保存this作用域
-        document.querySelector('#play1').addEventListener("click",function(e){    //播放视频
-            that.backstageVideo.play(); 
-        })
-        document.querySelector('#pause').addEventListener("click",function(e){    //停止播放视频
-            that.backstageVideo.pause();
-        })
-        document.querySelector('#inputVido').addEventListener("change",function(e){    //插入视频
-            that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
-        })
-        document.querySelector('#recording').addEventListener("click",function(e){    //开启视频录制
-            that.CanvasNode.recordingVideo.call(that);
-        })
-        document.querySelector("#stop").addEventListener("click",function(e){    //停止视频录制
-            that.CanvasNode.stopRecordingVideo.call(that);
-        })
-    }
     canvasDemoBindInit(){    //虚拟框画布函数
         let that = this, stay,  
             beginLine = {}, 
@@ -299,6 +312,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             break;
                         case "round":
                             that.ImageLayerNode.solidRound.call(that, that.canvasVideoCtx, firstplot, endplot);    //圆形
+                            break;
+                        case "rightTriangle":
+                            that.ImageLayerNode.solidTriangle.call(that, that.canvasVideoCtx, firstplot, endplot);    //直角三角形
                             break;
                     }
                     that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
@@ -346,7 +362,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
                             break;
                         case "rightTriangle":
-                            that.ImageLayerNode.solidRightTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //直角三角形
+                            that.ImageLayerNode.solidTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //直角三角形
+                            break;
+                        case "isosceles":
+                            that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
                             break;
                     }
                 }
@@ -357,6 +376,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     endLine = {x:that.centralPoint.x2, y:that.centralPoint.y2};
                     firstplot = { x:Math.min(that.centralPoint.x1,that.centralPoint.x2),y:Math.min(that.centralPoint.y1,that.centralPoint.y2) };
                     endplot = { x:Math.max(that.centralPoint.x1,that.centralPoint.x2),y:Math.max(that.centralPoint.y1,that.centralPoint.y2) };
+                    //if(that.toolCurrent === "rightTriangle" || that.toolCurrent === "isosceles"){
+                        firstplot = {x:that.centralPoint.x1, y:that.centralPoint.y1};
+                        endplot = {x:that.centralPoint.x2, y:that.centralPoint.y2};
+                    //}
                 }
                 switch(that.toolCurrent){    //判断图形类型
                     case "line":
@@ -402,22 +425,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 endplot.x += endmobile.x;
                                 endplot.y += endmobile.y;
                                 break;
-                            case "topleft":
-                                firstplot.x += endmobile.x;
-                                firstplot.y += endmobile.y;
-                                break;
-                            case "lowerleft":
-                                firstplot.x += endmobile.x;
-                                endplot.y += endmobile.y;
-                                break;
-                            case "topright":
-                                endplot.x += endmobile.x;
-                                firstplot.y += endmobile.y;
-                                break;
-                            case "lowerright":
-                                endplot.x += endmobile.x;
-                                endplot.y += endmobile.y;
-                                break;
                             case "top":
                                 firstplot.y += endmobile.y;
                                 break;
@@ -431,6 +438,51 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 firstplot.x += endmobile.x;
                                 break;
                         }
+                        console.log({firstplot,endplot});
+                        switch(that.direction[that.directionIndex]){
+                            case "upper":{
+                                switch(node){
+                                    case "topleft":
+                                        firstplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y;
+                                        break;
+                                    case "lowerleft":
+                                        firstplot.x += endmobile.x;
+                                        endplot.y += endmobile.y;
+                                        break;
+                                    case "topright":
+                                        endplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y;
+                                        break;
+                                    case "lowerright":
+                                        endplot.x += endmobile.x;
+                                        endplot.y += endmobile.y;
+                                        break;
+                                }
+                            }
+                            case "right":{
+                                switch(node){
+                                    case "topleft":
+                                        endplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y; 
+                                        break;
+                                    case "lowerleft":
+                                        endplot.x += endmobile.x;
+                                        endplot.y += endmobile.y;                                  
+
+                                        break;
+                                    case "topright":
+                                        firstplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y;
+
+                                        break;
+                                    case "lowerright":
+                                        firstplot.x += endmobile.x;
+                                        endplot.y += endmobile.y; 
+                                        break;
+                                }
+                            }
+                        }
                         that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
                         that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                         switch(that.toolCurrent){
@@ -439,6 +491,12 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 break;
                             case "round":
                                 that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
+                                break;
+                            case "rightTriangle":
+                                that.ImageLayerNode.solidTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //直角三角形
+                                break;
+                            case "isosceles":
+                                that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
                                 break;
                         }
                         that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框

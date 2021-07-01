@@ -40,8 +40,10 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle"
+            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles"
         ];
+        this.direction = [ "upper","right","lower","left" ];
+        this.directionIndex = 0;
         this.toolCurrent = "brush";
         this.pensize = 2;
         this.strokeColor = '#000';
