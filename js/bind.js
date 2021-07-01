@@ -151,16 +151,16 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 if(that.centralPoint.x1 !== -1){
                     switch(element.id){
                         case "clockwise":
-                            shapeFlip( {x: middle.x + y , y: middle.y - x}, {x: middle.x - y , y: middle.y + x} );
                             that.directionIndex ++;
+                            shapeFlip( {x: middle.x + y , y: middle.y - x}, {x: middle.x - y , y: middle.y + x} );
                             break;
                         case "anticlockwise":
-                            shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
                             that.directionIndex --;
+                            shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
                             break;
                         case "reversal":
-                            shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
                             that.directionIndex += 2;
+                            shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
                             break;
                         case "flip":
                             console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
@@ -302,6 +302,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 }
                 else{
                     that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
+                    let minbegin = {x:Math.min(firstplot.x,endplot.x),y:Math.min(firstplot.y,endplot.y)};
+                    let maxend = {x:Math.max(firstplot.x,endplot.x),y:Math.max(firstplot.y,endplot.y)};
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
                     switch(that.toolCurrent){
                         case "line":
@@ -311,12 +313,13 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.ImageLayerNode.solidBox.call(that, that.canvasVideoCtx, firstplot.x, firstplot.y, endplot.x, endplot.y);    //矩形框
                             break;
                         case "round":
-                            that.ImageLayerNode.solidRound.call(that, that.canvasVideoCtx, firstplot, endplot);    //圆形
+                            that.ImageLayerNode.solidRound.call(that, that.canvasVideoCtx, minbegin, maxend);    //圆形
                             break;
                         case "rightTriangle":
                             that.ImageLayerNode.solidTriangle.call(that, that.canvasVideoCtx, firstplot, endplot);    //直角三角形
                             break;
                     }
+                    that.directionIndex = 0;
                     that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
                 }
             }
@@ -374,12 +377,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 if(!operation && that.centralPoint !== -1){
                     beginLine = {x:that.centralPoint.x1, y:that.centralPoint.y1};
                     endLine = {x:that.centralPoint.x2, y:that.centralPoint.y2};
-                    firstplot = { x:Math.min(that.centralPoint.x1,that.centralPoint.x2),y:Math.min(that.centralPoint.y1,that.centralPoint.y2) };
-                    endplot = { x:Math.max(that.centralPoint.x1,that.centralPoint.x2),y:Math.max(that.centralPoint.y1,that.centralPoint.y2) };
-                    //if(that.toolCurrent === "rightTriangle" || that.toolCurrent === "isosceles"){
-                        firstplot = {x:that.centralPoint.x1, y:that.centralPoint.y1};
-                        endplot = {x:that.centralPoint.x2, y:that.centralPoint.y2};
-                    //}
+                    firstplot = {x:that.centralPoint.x1, y:that.centralPoint.y1};
+                    endplot = {x:that.centralPoint.x2, y:that.centralPoint.y2};
                 }
                 switch(that.toolCurrent){    //判断图形类型
                     case "line":
@@ -459,6 +458,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                         endplot.y += endmobile.y;
                                         break;
                                 }
+                                break;
                             }
                             case "right":{
                                 switch(node){
@@ -469,18 +469,59 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                     case "lowerleft":
                                         endplot.x += endmobile.x;
                                         endplot.y += endmobile.y;                                  
-
                                         break;
                                     case "topright":
                                         firstplot.x += endmobile.x;
                                         firstplot.y += endmobile.y;
-
                                         break;
                                     case "lowerright":
                                         firstplot.x += endmobile.x;
                                         endplot.y += endmobile.y; 
                                         break;
                                 }
+                                break;
+                            }
+                            case "lower":{
+                                switch(node){
+                                    case "topleft":
+                                        endplot.x += endmobile.x;
+                                        endplot.y += endmobile.y; 
+                                        break;
+                                    case "lowerleft":
+                                        endplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y;                                  
+                                        break;
+                                    case "topright":
+                                        firstplot.x += endmobile.x;
+                                        endplot.y += endmobile.y;
+                                        break;
+                                    case "lowerright":
+                                        firstplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y;
+                                        break;
+                                }
+                                break;
+                            }
+                            case "left":{
+                                switch(node){
+                                    case "topleft":
+                                        firstplot.x += endmobile.x;
+                                        endplot.y += endmobile.y; 
+                                        break;
+                                    case "lowerleft":
+                                        firstplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y;                                
+                                        break;
+                                    case "topright":
+                                        endplot.x += endmobile.x;
+                                        endplot.y += endmobile.y;     
+                                        break;
+                                    case "lowerright":
+                                        endplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y; 
+                                        break;
+                                }
+                                break;
                             }
                         }
                         that.canvasDemoCtx.clearRect(0,0,that.width,that.height);

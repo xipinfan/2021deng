@@ -247,7 +247,7 @@ class ImageLayer{    //图像处理工具类
         canvas.stroke();
         canvas.closePath();
     }
-
+    //直角三角形
     solidTriangle(canvas, firstplot, endplot){
 
         let right = { x:firstplot.x, y:endplot.y };
@@ -258,9 +258,18 @@ class ImageLayer{    //图像处理工具类
         canvas.closePath();
         canvas.stroke();
     }
+    //等腰三角形
     isoscelesTriangle(canvas, firstplot, endplot){
-
-        let right = { x:firstplot.x, y:endplot.y };
+        let right;
+        switch(this.direction[this.directionIndex]){
+            case "upper":
+                right = { x:firstplot.x, y:endplot.y };
+                break;
+            case "right":
+                right = { x:firstplot.x, y:endplot.y };
+                break;
+        }
+        
         canvas.beginPath();
         canvas.moveTo((firstplot.x + endplot.x)/2,firstplot.y);
         canvas.lineTo(right.x, right.y);
