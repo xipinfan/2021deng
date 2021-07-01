@@ -32,8 +32,38 @@ class ImageLayer{    //图像处理工具类
         return `RGB(${data[0]},${data[1]},${data[2]})`;
     }
 
-    paintBucket(canvas, x, y){
-
+    paintBucket(ImageDate, x, y, color){    //油漆桶
+        let { width, height, data } = ImageDate;
+        let [R, G, B] = color.substring(1).match(/[a-fA-F\d]{2}/g);
+		R = Number.parseInt(R, 16);
+		G = Number.parseInt(G, 16);
+		B = Number.parseInt(B, 16);
+        x = Math.floor(x);
+        y = Math.floor(y);
+        let index = (y*width + x) * 4;
+        let grayColor = this.rgbToGray(data[index], data[index+1], data[index+2]);
+        let vis = Array.from({ length: height }, x => Array.from({ length: width }, y => 0)); // 访问标记
+        let move_dir = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // 广搜方向
+		let queue = [{ x, y }];
+		vis[y][x] = 1;
+        
+        while(queue.length > 0){
+            let pos = queue.shift();
+            index = (pos.y * width + pos.x)*4;
+            data[index] = R;
+            data[index+1] = G;
+            data[index+2] = B;
+            for(let i of move_dir){
+                let x1 = pos.x + i[0];
+                let y1 = pos.y + i[1];
+                index = (y1 * width + x1 ) * 4;
+                let colorto = this.rgbToGray( data[index],data[index+1],data[index+2] );
+                if(x1 >= 0 && y1 >=0 && x1 < width && y1 < height && !vis[y1][x1] && colorto - 50 <= grayColor && colorto + 50 >= grayColor ){
+                    vis[y1][x1] = 1;
+                    queue.push({ x:x1, y:y1 });
+                }
+            }
+        }
     }
 
     rgbToGray(r, g, b) { // 计算灰度值
@@ -52,7 +82,7 @@ class ImageLayer{    //图像处理工具类
     drawDemoLine(canvas,beginLine,endLine){
     
         canvas.beginPath();
-        
+
         canvas.moveTo(beginLine.x,beginLine.y);
         canvas.lineTo(endLine.x, endLine.y);
 
@@ -197,6 +227,10 @@ class ImageLayer{    //图像处理工具类
         canvas.ellipse((firstplot.x+endplot.x)/2, (firstplot.y+endplot.y)/2, (endplot.x - firstplot.x)/2, (endplot.y - firstplot.y)/2, 0, 0, Math.PI * 2);
         canvas.stroke();
         canvas.closePath();
+    }
+
+    solidRightTriangle(canvas, firstplot, endplot){
+        
     }
 
     lineDistance(beginspot, endspot){    //点到点距离公式

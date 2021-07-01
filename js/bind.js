@@ -53,7 +53,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     colorchoice.value = RGB.colorHex();
                     break;
                 case "bucket":
-                    that.ImageLayerNode.paintBucket(that.canvasVideoCtx, e.layerX, e.layerY);
+                    let ImageDate = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
+                    that.ImageLayerNode.paintBucket(ImageDate, e.layerX, e.layerY, that.strokeColor);
+                    that.canvasVideoCtx.putImageData(ImageDate, 0, 0);
                     break;
                 default:
                     break;
@@ -108,10 +110,12 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
                             break;
                         case "reversal":
-                            shapeFlip( {x: middle.x - x , y: middle.y - y}, {x: middle.x + x , y: middle.y + y} );
+                            shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
                             break;
                         case "flip":
                             console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
+                            let d = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
+                            console.log(d);
                     }    
                 }
             })
@@ -174,6 +178,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         switch(that.toolCurrent){
                             case "line":
                             case "rectangle":
+                            case "rightTriangle":
                             case "round":
                                 that.canvasDemo.style.zIndex = 1001;    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
                                 break;
@@ -340,6 +345,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         case "round":
                             that.ImageLayerNode.solidRound.call(that, that.canvasDemoCtx, firstplot, endplot);    //圆形
                             break;
+                        case "rightTriangle":
+                            that.ImageLayerNode.solidRightTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //直角三角形
+                            break;
                     }
                 }
             }
@@ -374,7 +382,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             case "begin":
                                 beginLine.x += endmobile.x;
                                 beginLine.y += endmobile.y;
-                                
                                 break;
                             case "end":
                                 endLine.x += endmobile.x;

@@ -40,7 +40,7 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush","eraser","rectangle","round","bucket","extract"
+            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle"
         ];
         this.toolCurrent = "brush";
         this.pensize = 2;
