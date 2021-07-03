@@ -87,6 +87,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             case "rectangle":
                             case "rightTriangle":
                             case "isosceles":
+                            case "diamond":
                             case "round":
                                 that.canvasDemo.style.zIndex = 1001;    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
                                 break;
@@ -167,12 +168,13 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             let d = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
                             console.log(d);
                     }    
-                    if(that.directionIndex < 0)that.directionIndex += that.direction.length;
-                    if(that.directionIndex > 3)that.directionIndex -= that.direction.length;
+                    
                 }
             })
         })
         function shapeFlip( beginLine, endLine ){
+            if(that.directionIndex < 0)that.directionIndex += that.direction.length;
+            if(that.directionIndex > 3)that.directionIndex -= that.direction.length;
             that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
             let minbegin = {x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y)};
             let maxend = {x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y)};
@@ -192,6 +194,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     break;
                 case "isosceles":
                     that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasDemoCtx, beginLine, endLine);    //等腰三角形
+                    break;
+                case "diamond":
+                    that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, minbegin, maxend);    //等腰三角形
                     break;
             }
             if(that.toolCurrent !== "line"){
@@ -318,34 +323,41 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         case "rightTriangle":
                             that.ImageLayerNode.solidTriangle.call(that, that.canvasVideoCtx, firstplot, endplot);    //直角三角形
                             break;
+                        case "isosceles":
+                            that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasVideoCtx, beginLine, endLine);    //等腰三角形
+                            break;
+                        case "diamond":
+                            that.ImageLayerNode.drawDiamond.call(that, that.canvasVideoCtx, firstplot, endplot);    //等腰三角形
+                            break;
                     }
                     that.directionIndex = 0;
                     that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
                 }
             }
-        });
-        this.canvasDemo.addEventListener('mouseup', function(e){ 
-            if(nodeState){    //当鼠标按下时
-                endLine.x = e.layerX;    //划线状态下记录终点
-                endLine.y = e.layerY;
-                firstplot = { x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y) };
-                endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
-                switch(that.toolCurrent){    //判断虚拟框
-                    case "line":
-                        that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
-                        that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线提示框
-                        break;
-                    default:
-                        that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
-                        that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
-                }  
-                nodeState = false;    //记录鼠标抬起
-            }
-            if(!operation){    //当鼠标不是按在此区域时或者为划线状态时，operation为false
-                controlnode = !controlnode;    //转换形态    
-            }
-            operation = false;   //初始化标记的状态
-        })
+        });       
+        that.canvasDemo.addEventListener('mouseup', function(e){ 
+                if(nodeState){    //当鼠标按下时
+                    endLine.x = e.layerX;    //划线状态下记录终点
+                    endLine.y = e.layerY;
+                    firstplot = { x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y) };
+                    endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
+                    switch(that.toolCurrent){    //判断虚拟框
+                        case "line":
+                            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
+                            that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线提示框
+                            break;
+                        default:
+                            that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
+                            that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
+                    }  
+                    nodeState = false;    //记录鼠标抬起
+                }
+                if(!operation){    //当鼠标不是按在此区域时或者为划线状态时，operation为false
+                    controlnode = !controlnode;    //转换形态    
+                }
+                operation = false;   //初始化标记的状态
+            })
+        
         this.canvasDemo.addEventListener("mousemove",function(e){
             if(controlnode){    //划线状态
                 if(nodeState){
@@ -370,6 +382,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         case "isosceles":
                             that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
                             break;
+                        case "diamond":
+                            that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
+                            break;
                     }
                 }
             }
@@ -393,8 +408,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     beginmobile.x = e.layerX;     //初始化下一个点
                     beginmobile.y = e.layerY;
                     if(that.toolCurrent === "line"){     //直线特殊判断
-                        let node = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x: e.layerX, y: e.layerY});    //判断当前区域类型
-                        switch(node){
+                        switch(stay){
                             case "core":
                                 beginLine.x += endmobile.x;    //移动线段初始或者结束坐标
                                 beginLine.y += endmobile.y;
@@ -416,8 +430,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                     }
                     else{
-                        let node = that.ImageLayerNode.boundary(that.canvasDemo, e, firstplot, endplot, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);
-                        switch(node){
+                        switch(stay){
                             case "core":
                                 firstplot.x += endmobile.x;
                                 firstplot.y += endmobile.y;
@@ -437,10 +450,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 firstplot.x += endmobile.x;
                                 break;
                         }
-                        console.log({firstplot,endplot});
                         switch(that.direction[that.directionIndex]){
                             case "upper":{
-                                switch(node){
+                                switch(stay){
                                     case "topleft":
                                         firstplot.x += endmobile.x;
                                         firstplot.y += endmobile.y;
@@ -461,28 +473,28 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 break;
                             }
                             case "right":{
-                                switch(node){
+                                switch(stay){
                                     case "topleft":
                                         endplot.x += endmobile.x;
                                         firstplot.y += endmobile.y; 
                                         break;
                                     case "lowerleft":
                                         endplot.x += endmobile.x;
-                                        endplot.y += endmobile.y;                                  
+                                        endplot.y += endmobile.y;                                
                                         break;
                                     case "topright":
                                         firstplot.x += endmobile.x;
-                                        firstplot.y += endmobile.y;
+                                        firstplot.y += endmobile.y; 
                                         break;
                                     case "lowerright":
-                                        firstplot.x += endmobile.x;
-                                        endplot.y += endmobile.y; 
+                                        endplot.x += endmobile.x;
+                                        firstplot.y += endmobile.y; 
                                         break;
                                 }
-                                break;
+                                break;  
                             }
                             case "lower":{
-                                switch(node){
+                                switch(stay){
                                     case "topleft":
                                         endplot.x += endmobile.x;
                                         endplot.y += endmobile.y; 
@@ -503,7 +515,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 break;
                             }
                             case "left":{
-                                switch(node){
+                                switch(stay){
                                     case "topleft":
                                         firstplot.x += endmobile.x;
                                         endplot.y += endmobile.y; 
@@ -520,8 +532,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                         endplot.x += endmobile.x;
                                         firstplot.y += endmobile.y; 
                                         break;
-                                }
-                                break;
+                                } 
+                                break;   
                             }
                         }
                         that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
@@ -538,6 +550,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 break;
                             case "isosceles":
                                 that.ImageLayerNode.isoscelesTriangle.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
+                                break;
+                            case "diamond":
+                                that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
                                 break;
                         }
                         that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框

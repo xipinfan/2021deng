@@ -260,20 +260,41 @@ class ImageLayer{    //图像处理工具类
     }
     //等腰三角形
     isoscelesTriangle(canvas, firstplot, endplot){
-        let right;
+        let right = { x:firstplot.x, y:endplot.y };
         switch(this.direction[this.directionIndex]){
+            case "lower":
             case "upper":
                 right = { x:firstplot.x, y:endplot.y };
                 break;
+            case "left":
             case "right":
-                right = { x:firstplot.x, y:endplot.y };
+                right = { x:endplot.x, y:firstplot.y };
                 break;
         }
-        
         canvas.beginPath();
-        canvas.moveTo((firstplot.x + endplot.x)/2,firstplot.y);
+        switch(this.direction[this.directionIndex]){
+            case "lower":
+            case "upper":
+                canvas.moveTo((firstplot.x + endplot.x)/2,firstplot.y);
+                break;
+            case "left":
+            case "right":
+                canvas.moveTo( firstplot.x, (firstplot.y + endplot.y)/2);
+                break;
+        }
         canvas.lineTo(right.x, right.y);
         canvas.lineTo(endplot.x, endplot.y);
+        canvas.closePath();
+        canvas.stroke();
+    }
+    //菱形
+    drawDiamond(canvas, firstplot, endplot){
+        let mid = { x:(firstplot.x + endplot.x)/2, y:(firstplot.y + endplot.y)/2 } , x = (endplot.x - firstplot.x)/2, y = (endplot.y - firstplot.y)/2;
+        canvas.beginPath();
+        canvas.moveTo( mid.x + x , mid.y );
+        canvas.lineTo( mid.x  , mid.y - y );
+        canvas.lineTo( mid.x - x , mid.y );
+        canvas.lineTo( mid.x  , mid.y + y );
         canvas.closePath();
         canvas.stroke();
     }

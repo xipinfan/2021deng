@@ -40,7 +40,7 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles"
+            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles","diamond"
         ];
         this.direction = [ "upper","right","lower","left" ];
         this.directionIndex = 0;
