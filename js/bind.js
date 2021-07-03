@@ -15,6 +15,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.ImageLayerNode = new ImageLayer();      //导入工具类
         this.CanvasNode = new Canvas();  
         this.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
+        this.textDottedLine = {};
     }
     videoBindingInit(){    //视频初始
         let that = this;    //保存this作用域
@@ -46,6 +47,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let that = this;
         let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
         let colorto = document.querySelector('#rgb');    //获取展示项
+        let timeto = setInterval(null, 10);
         colorto.innerHTML = "RGB(0,0,0)";
         document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
             switch(element.id){
@@ -101,8 +103,47 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             case "extract":
                                 that.canvasVideo.style.cursor = "crosshair";
                                 break;
+                            case "text":
+                                //that.textarea.focus();
+                                that.canvasDemo.style.zIndex = 1001;
+                                break;
                         }
                     })
+            }
+        })
+        this.textarea.addEventListener("input", function(e){
+            let textQueue = [];
+            clearInterval(timeto);
+            console.log(this.value[1]);
+            if(that.textDottedLine.beginLine !== undefined){
+                let {beginLine, endLine} = that.textDottedLine;
+                let textWidth = Math.abs(that.textDottedLine.clinetTo.x - that.textDottedLine.clinet.x);
+                that.textarea.style.font =  "20px serif";
+                that.canvasDemoCtx.font = "20px serif";
+                let dd = 0, index = 0;
+                textQueue[index] = "";
+                for( let i of this.value ){
+                    if(that.canvasDemoCtx.measureText(textQueue[index] + i).width > textWidth){
+                        index ++;
+                        textQueue[index] = "";
+                    }
+                    textQueue[index] += i;
+                }
+                
+                timeto =  setInterval(()=>{
+                    that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
+                    for(let i = 0 ; i <= index ; i++){
+                        if(i === textQueue.length - 1 && dd > 10){
+                            that.canvasDemoCtx.fillText(textQueue[i] + '|', that.textDottedLine.clinet.x, that.textDottedLine.clinet.y + 20*(i+1));
+                        }
+                        else{
+                            that.canvasDemoCtx.fillText(textQueue[i], that.textDottedLine.clinet.x, that.textDottedLine.clinet.y + 20*(i+1));
+                        }
+                    }
+                    dd ++;
+                    if(dd >= 20)dd -= 20;
+                    that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);     //虚线提示框
+                }, 50)
             }
         })
         document.querySelectorAll('#sb1>input[type=button]').forEach(element => {
@@ -235,13 +276,16 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     break;
                 case "bucket":
                     let ImageDate = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
+                    that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
                     that.ImageLayerNode.paintBucket(ImageDate, e.layerX, e.layerY, that.strokeColor);
                     that.canvasVideoCtx.putImageData(ImageDate, 0, 0);
                     break;
                 default:
                     break;
             };
-            that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+            if(that.toolCurrent !== "bucket"){
+                that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+            }
         })
         let drawEndBind = ['mouseup','mouseleave'];
         drawEndBind.forEach(function(item){
@@ -280,16 +324,19 @@ class Bind extends Tools{    //绑定事件类，继承主类
             nodeState = false, 
             controlnode = true, 
             operation = false, 
+            client = {},
             beginmobile = {}, 
             endmobile = {},
             firstplot = {},
             endplot = {};
         //controlnode作为标记当前canvas状态的标记，true标识为划线状态，false为修改状态。nodeState为鼠标是否按下的标记，true为按下，false为未按下
-        //operation作为按下鼠标之后是否在操作区域的标记，true为在，false不在
+        //operation作为按下鼠标之后是否在操作区域的标记，true为在，false不在。clinet保存初始点位置
         this.canvasDemo.addEventListener("mousedown", function(e){
             if(controlnode){    //划线状态时
                 beginLine.x = e.layerX;    //保存初始路径
                 beginLine.y = e.layerY;
+                that.textDottedLine.beginLine = beginLine;
+                that.textDottedLine.clinet = { x:e.clientX,y:e.clientY };
                 nodeState = true;    //开始记录当前路径
             }
             else{
@@ -356,6 +403,13 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     controlnode = !controlnode;    //转换形态    
                 }
                 operation = false;   //初始化标记的状态
+                if(that.toolCurrent === "text"){
+                    that.textDottedLine.endLine = endLine;
+                    that.textDottedLine.clinetTo = { x:e.clientX,y:e.clientY };
+                    that.textarea.style.marginLeft = that.textDottedLine.clinet.x + 'px';
+                    that.textarea.style.marginTop = that.textDottedLine.clinet.y + 'px';
+                    that.textarea.focus();
+                }
             })
         
         this.canvasDemo.addEventListener("mousemove",function(e){
@@ -384,6 +438,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             break;
                         case "diamond":
                             that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
+                            break;
+                        case "text":
+                            that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
                             break;
                     }
                 }

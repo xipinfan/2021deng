@@ -40,7 +40,7 @@ class Tools{
     }
     dataInit(){
         this.tool = [
-            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles","diamond"
+            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles","diamond","text"
         ];
         this.direction = [ "upper","right","lower","left" ];
         this.directionIndex = 0;
@@ -50,6 +50,11 @@ class Tools{
         this.rubberIconSize = 8;    //橡皮图标显示
         this.translateX = 0;
         this.translateY = 0;
+
+        this.textarea = document.createElement('textarea');
+        this.textarea.style.opacity = 0;
+        this.textarea.style.zIndex = -999;
+        this.textarea.style.position = "absolute"
 
         String.prototype.colorHex = function () {
         // RGB颜色值的正则
@@ -118,6 +123,8 @@ class Tools{
     canvasInit(){
         //设定canvas所在的盒模型大小
         let parentNode = document.querySelector("#canvasLayout");
+
+        parentNode.appendChild(this.textarea);
 
         //设定图片canvas
         this.canvasVideo = document.createElement('canvas');
