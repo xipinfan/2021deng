@@ -39,22 +39,20 @@ class Tools{
         this.lableFound();
     }
     dataInit(){
-        this.tool = [
+        this.tool = [    //工具初始化
             "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles","diamond","text"
         ];
-        this.direction = [ "upper","right","lower","left" ];
-        this.directionIndex = 0;
-        this.toolCurrent = "brush";
-        this.pensize = 2;
-        this.strokeColor = '#000';
+        this.direction = [ "upper","right","lower","left" ];    //设定操作画布朝向
+        this.directionIndex = 0;    //设定操作画布当前朝向
+        this.toolCurrent = "brush";    //初始工具
+        this.pensize = 2;    //初始化画笔大小
+        this.strokeColor = '#000';        //初始化画笔颜色
         this.rubberIconSize = 8;    //橡皮图标显示
-        this.translateX = 0;
-        this.translateY = 0;
 
-        this.textarea = document.createElement('textarea');
-        this.textarea.style.opacity = 0;
-        this.textarea.style.zIndex = -999;
-        this.textarea.style.position = "absolute"
+        this.textarea = document.createElement('textarea');    //隐藏输入文本框
+        this.textarea.style.opacity = 0;    //透明度为0，直接就行隐藏
+        this.textarea.style.zIndex = -999;    //藏在画布地下
+        this.textarea.style.position = "absolute";    //绝对定位
 
         String.prototype.colorHex = function () {
         // RGB颜色值的正则

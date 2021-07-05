@@ -14,8 +14,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.forwardData = [];    //保存每一次回撤前的图像
         this.ImageLayerNode = new ImageLayer();      //导入工具类
         this.CanvasNode = new Canvas();  
-        this.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
-        this.textDottedLine = {};
+        this.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };    //图像翻转坐标记录
+        this.textDottedLine = {};    //文本的坐标记录
+        this.textValue = "";    //记录textarea输入框的输入内容
+        this.timeto = setInterval(null,10);    //设定定时闪烁的提示
     }
     videoBindingInit(){    //视频初始
         let that = this;    //保存this作用域
@@ -47,8 +49,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let that = this;
         let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
         let colorto = document.querySelector('#rgb');    //获取展示项
-        let timeto = setInterval(null, 10);
-        colorto.innerHTML = "RGB(0,0,0)";
+        colorto.innerText = "RGB(0,0,0)";
         document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
             switch(element.id){
                 case 'white':
@@ -111,39 +112,21 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     })
             }
         })
-        this.textarea.addEventListener("input", function(e){
-            let textQueue = [];
-            clearInterval(timeto);
-            console.log(this.value[1]);
+        this.textinput = this.textarea.addEventListener("input", function(e){
+            clearInterval(that.timeto);
             if(that.textDottedLine.beginLine !== undefined){
-                let {beginLine, endLine} = that.textDottedLine;
-                let textWidth = Math.abs(that.textDottedLine.clinetTo.x - that.textDottedLine.clinet.x);
-                that.textarea.style.font =  "20px serif";
-                that.canvasDemoCtx.font = "20px serif";
-                let dd = 0, index = 0;
-                textQueue[index] = "";
-                for( let i of this.value ){
-                    if(that.canvasDemoCtx.measureText(textQueue[index] + i).width > textWidth){
-                        index ++;
-                        textQueue[index] = "";
-                    }
-                    textQueue[index] += i;
-                }
-                
-                timeto =  setInterval(()=>{
+                that.textValue = this.value;
+                let {clinet, clinetTo} = that.textDottedLine, dd = 0;
+                that.timeto =  setInterval(()=>{    //每隔800毫秒就行一次闪烁
                     that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除画布
-                    for(let i = 0 ; i <= index ; i++){
-                        if(i === textQueue.length - 1 && dd > 10){
-                            that.canvasDemoCtx.fillText(textQueue[i] + '|', that.textDottedLine.clinet.x, that.textDottedLine.clinet.y + 20*(i+1));
-                        }
-                        else{
-                            that.canvasDemoCtx.fillText(textQueue[i], that.textDottedLine.clinet.x, that.textDottedLine.clinet.y + 20*(i+1));
-                        }
+                    let h = that.ImageLayerNode.textTool(that.textDottedLine, that.canvasDemoCtx, this.value, dd);    //获取当前框体长度
+                    if(h > Math.abs(clinetTo.y - clinet.y)){    //判断是否够长
+                        clinetTo.y = clinet.y + h + 3;    //不够长则延长
                     }
                     dd ++;
-                    if(dd >= 20)dd -= 20;
-                    that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);     //虚线提示框
-                }, 50)
+                    if(dd >= 20)dd -= 20;    //20次40毫秒
+                    that.ImageLayerNode.dottedBox.call(that, clinet.x, clinet.y, clinetTo.x, clinetTo.y);     //虚线提示框
+                }, 40)
             }
         })
         document.querySelectorAll('#sb1>input[type=button]').forEach(element => {
@@ -170,37 +153,37 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         }
                         break;
                 }
-                that.canvasVideoCtx.lineWidth = that.pensize;
+                that.canvasVideoCtx.lineWidth = that.pensize;    //修改字体大小
                 that.canvasDemoCtx.lineWidth = that.pensize;
-                if(that.toolCurrent === "eraser"){
+                if(that.toolCurrent === "eraser"){    //不同大小的橡皮擦鼠标样式
                     let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
                     that.canvasVideo.style.cursor = "url("+ str +"),move";
                 }
             })
         });
-        colorchoice.addEventListener("input",function(e){
-            colorto.innerHTML = this.value.toLowerCase().colorRgb();
+        colorchoice.addEventListener("input",function(e){    //修改画笔颜色
+            colorto.innerText = this.value.toLowerCase().colorRgb();    //修改页面显示
             that.strokeColor = this.value.toLowerCase();
             that.canvasVideoCtx.fillStyle  = that.strokeColor;
             that.canvasVideoCtx.strokeStyle  = that.strokeColor;
             that.canvasDemoCtx.fillStyle  = that.strokeColor;
             that.canvasDemoCtx.strokeStyle  = that.strokeColor;
         })
-        document.querySelectorAll("#flipButton>button").forEach((element,index)=>{
+        document.querySelectorAll("#flipButton>button").forEach((element,index)=>{    //设定翻转
             element.addEventListener("click",function(e){
-                let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };
-                let x = (that.centralPoint.x2 - that.centralPoint.x1)/2, y = (that.centralPoint.y2 - that.centralPoint.y1)/2 ;
+                let middle = { x:(that.centralPoint.x1+that.centralPoint.x2)/2 , y:(that.centralPoint.y1+that.centralPoint.y2)/2 };    //中心点
+                let x = (that.centralPoint.x2 - that.centralPoint.x1)/2, y = (that.centralPoint.y2 - that.centralPoint.y1)/2 ;    //距离
                 if(that.centralPoint.x1 !== -1){
                     switch(element.id){
-                        case "clockwise":
+                        case "clockwise":    //顺时针90°
                             that.directionIndex ++;
                             shapeFlip( {x: middle.x + y , y: middle.y - x}, {x: middle.x - y , y: middle.y + x} );
                             break;
-                        case "anticlockwise":
+                        case "anticlockwise":    //逆时针90°
                             that.directionIndex --;
                             shapeFlip( {x: middle.x - y , y: middle.y + x}, {x: middle.x + y , y: middle.y - x} );
                             break;
-                        case "reversal":
+                        case "reversal":    //180°
                             that.directionIndex += 2;
                             shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
                             break;
@@ -243,7 +226,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
             if(that.toolCurrent !== "line"){
                 that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
             }
-            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
+            that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };    //改变坐标
         }
     }
     canvasBindInit(){    //基础画布函数
@@ -271,7 +254,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     break;
                 case 'extract':
                     let RGB = that.ImageLayerNode.extractPixels(that.canvasVideoCtx , e.layerX, e.layerY);    //提取颜色
-                    colorto.innerHTML = RGB;
+                    colorto.innerText = RGB;
                     colorchoice.value = RGB.colorHex();
                     break;
                 case "bucket":
@@ -313,8 +296,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         break;
                 };
             }
-            xbind.innerHTML = e.layerX;
-            ybind.innerHTML = e.layerY;
+            xbind.innerText = e.layerX;
+            ybind.innerText = e.layerY;
         })
     }
     canvasDemoBindInit(){    //虚拟框画布函数
@@ -324,7 +307,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
             nodeState = false, 
             controlnode = true, 
             operation = false, 
-            client = {},
             beginmobile = {}, 
             endmobile = {},
             firstplot = {},
@@ -336,7 +318,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 beginLine.x = e.layerX;    //保存初始路径
                 beginLine.y = e.layerY;
                 that.textDottedLine.beginLine = beginLine;
-                that.textDottedLine.clinet = { x:e.clientX,y:e.clientY };
+                that.textDottedLine.clinet = { x:e.pageX,y:e.pageY };
                 nodeState = true;    //开始记录当前路径
             }
             else{
@@ -351,8 +333,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     beginmobile.x = e.layerX;    //记录初始点
                     beginmobile.y = e.layerY;
                     operation = true;    //当前已经在区域中按下的标记
+                    that.textarea.blur();    //取消焦点
                 }
                 else{
+                    clearInterval(that.timeto);
                     that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
                     let minbegin = {x:Math.min(firstplot.x,endplot.x),y:Math.min(firstplot.y,endplot.y)};
                     let maxend = {x:Math.max(firstplot.x,endplot.x),y:Math.max(firstplot.y,endplot.y)};
@@ -376,8 +360,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         case "diamond":
                             that.ImageLayerNode.drawDiamond.call(that, that.canvasVideoCtx, firstplot, endplot);    //等腰三角形
                             break;
+                        case "text":{    //文本
+                            that.ImageLayerNode.textTool(that.textDottedLine, that.canvasVideoCtx, that.textValue, 0);
+                            that.textValue = "";
+                            that.textarea.value = "";
+                            break;
+                        }    
                     }
-                    that.directionIndex = 0;
+                    that.directionIndex = 0;    //设定翻转和点初始化
                     that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
                 }
             }
@@ -397,19 +387,28 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
                             that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
                     }  
+                    if(that.toolCurrent === "text"){    //保存文本框开始点和结束点并且修改textarea位置
+                        that.textDottedLine.endLine = endLine;
+                        let { x, y } = that.textDottedLine.clinet;
+                        that.textDottedLine.clinet = { x:Math.min(e.pageX, x), y:Math.min(e.pageY, y) };
+                        that.textDottedLine.clinetTo = { x:Math.max(e.pageX, x), y:Math.max(e.pageY, y) };
+                        that.textarea.style.marginLeft = that.textDottedLine.clinet.x + 'px';
+                        that.textarea.style.marginTop = that.textDottedLine.clinet.y + 'px';
+                        that.textarea.dispatchEvent(new Event('input', { bubbles: true }));    //触发input事件
+                        that.textarea.focus();    //获取焦点
+                    }
                     nodeState = false;    //记录鼠标抬起
                 }
                 if(!operation){    //当鼠标不是按在此区域时或者为划线状态时，operation为false
-                    controlnode = !controlnode;    //转换形态    
+                    controlnode = !controlnode;    //转换形态   
+                }
+                else{
+                    if(that.toolCurrent === "text"){
+                        that.textarea.focus();    //获取焦点
+                    }
                 }
                 operation = false;   //初始化标记的状态
-                if(that.toolCurrent === "text"){
-                    that.textDottedLine.endLine = endLine;
-                    that.textDottedLine.clinetTo = { x:e.clientX,y:e.clientY };
-                    that.textarea.style.marginLeft = that.textDottedLine.clinet.x + 'px';
-                    that.textarea.style.marginTop = that.textDottedLine.clinet.y + 'px';
-                    that.textarea.focus();
-                }
+                
             })
         
         this.canvasDemo.addEventListener("mousemove",function(e){
@@ -446,7 +445,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 }
             }
             else{    //修改状态
-                if(!operation && that.centralPoint !== -1){
+                if(!operation && that.centralPoint !== -1){    //当图形翻转了之后修改其坐标
                     beginLine = {x:that.centralPoint.x1, y:that.centralPoint.y1};
                     endLine = {x:that.centralPoint.x2, y:that.centralPoint.y2};
                     firstplot = {x:that.centralPoint.x1, y:that.centralPoint.y1};
@@ -487,6 +486,12 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.ImageLayerNode.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y);    //直线框
                     }
                     else{
+                        if(that.toolCurrent === "text"){    //文字开始结束点特殊判断
+                            firstplot.x = that.textDottedLine.clinet.x;
+                            firstplot.y = that.textDottedLine.clinet.y;
+                            endplot.x = that.textDottedLine.clinetTo.x;
+                            endplot.y = that.textDottedLine.clinetTo.y;
+                        }
                         switch(stay){
                             case "core":
                                 firstplot.x += endmobile.x;
@@ -508,7 +513,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 break;
                         }
                         switch(that.direction[that.directionIndex]){
-                            case "upper":{
+                            case "upper":{    //当图形正向时
                                 switch(stay){
                                     case "topleft":
                                         firstplot.x += endmobile.x;
@@ -529,7 +534,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 }
                                 break;
                             }
-                            case "right":{
+                            case "right":{    //当图形右向时
                                 switch(stay){
                                     case "topleft":
                                         endplot.x += endmobile.x;
@@ -550,7 +555,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 }
                                 break;  
                             }
-                            case "lower":{
+                            case "lower":{    //当图形反向时
                                 switch(stay){
                                     case "topleft":
                                         endplot.x += endmobile.x;
@@ -571,7 +576,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 }
                                 break;
                             }
-                            case "left":{
+                            case "left":{     //当图形右向时
                                 switch(stay){
                                     case "topleft":
                                         firstplot.x += endmobile.x;
@@ -611,6 +616,13 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             case "diamond":
                                 that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
                                 break;
+                            case "text":{    //文本
+                                that.textDottedLine.clinet.x = firstplot.x;    //替换点坐标，使得定时器内按照新坐标进行绘制
+                                that.textDottedLine.clinet.y = firstplot.y;
+                                that.textDottedLine.clinetTo.x = endplot.x;
+                                that.textDottedLine.clinetTo.y = endplot.y;
+                                that.ImageLayerNode.textTool(that.textDottedLine, that.canvasDemoCtx, that.textValue, 0);
+                            }
                         }
                         that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框
                     }

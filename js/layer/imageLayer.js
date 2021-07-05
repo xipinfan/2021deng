@@ -40,14 +40,14 @@ class ImageLayer{    //图像处理工具类
 		B = Number.parseInt(B, 16);
         x = Math.floor(x);
         y = Math.floor(y);
-        let index = (y*width + x) * 4;
+        let index = (y*width + x) * 4;    //data数组排列为从左到右，从上到下，每一个像素点占三个空间，分别为RGB属性
         let grayColor = this.rgbToGray(data[index], data[index+1], data[index+2]);
         let vis = Array.from({ length: height }, x => Array.from({ length: width }, y => 0)); // 访问标记
         let move_dir = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // 广搜方向
 		let queue = [{ x, y }];
 		vis[y][x] = 1;
         
-        while(queue.length > 0){
+        while(queue.length > 0){    //广搜搜索附近相识颜色 
             let pos = queue.shift();
             index = (pos.y * width + pos.x)*4;
             data[index] = R;
@@ -58,7 +58,7 @@ class ImageLayer{    //图像处理工具类
                 let y1 = pos.y + i[1];
                 index = (y1 * width + x1 ) * 4;
                 let colorto = this.rgbToGray( data[index],data[index+1],data[index+2] );
-                if(x1 >= 0 && y1 >=0 && x1 < width && y1 < height && !vis[y1][x1] && colorto - 50 <= grayColor && colorto + 50 >= grayColor ){
+                if(x1 >= 0 && y1 >=0 && x1 < width && y1 < height && !vis[y1][x1] && colorto - 50 <= grayColor && colorto + 50 >= grayColor ){    //通过灰度值判断
                     vis[y1][x1] = 1;
                     queue.push({ x:x1, y:y1 });
                 }
@@ -88,7 +88,7 @@ class ImageLayer{    //图像处理工具类
 
         canvas.stroke();
     }
-
+    //直线的操作框
     lineBox(x1, y1, x2, y2){
         this.canvasDemoCtx.save();    //先保存画布初始状态，为了使得之后的strokeStyle等操作不会改变canvas的基本属性
         let path = [{x:x1, y:y1},{x:x2,y:y2}];    //找到两个点
@@ -101,7 +101,7 @@ class ImageLayer{    //图像处理工具类
         this.canvasDemoCtx.restore();   //还原初始状态
     }
 
-    spotLineDistance(beginline, endline, node){    //由鼠标位置修改鼠标样式
+    spotLineDistance(beginline, endline, node){    //直线由鼠标位置修改鼠标样式
         if(this.lineDistance(beginline, node)<=8){    //判断点是否在初始点附近
             return "begin";
         }
@@ -121,7 +121,7 @@ class ImageLayer{    //图像处理工具类
         }
     }
 
-    mousePointLine(e, beginLine, endLine, canvasDemo){
+    mousePointLine(e, beginLine, endLine, canvasDemo){    //直线鼠标指针所在地判断
         let node = this.spotLineDistance(beginLine, endLine, {x:e.layerX, y:e.layerY});
         switch(node){
             case "core":    //线附近
@@ -139,7 +139,6 @@ class ImageLayer{    //图像处理工具类
     }
 
     //矩形函数
-    //待改
     solidBox(canvas, x1, y1, x2, y2){    //实线矩形框
         canvas.save();
         canvas.beginPath();
@@ -175,12 +174,12 @@ class ImageLayer{    //图像处理工具类
         this.canvasDemoCtx.restore();
     }
 
-    boundary(canvas, e, firstplot, endplot, lineDistance, pointToLine){
+    boundary(canvas, e, firstplot, endplot, lineDistance, pointToLine){    //其他的所在地判断，随便修改鼠标样式
         let node = {x:e.layerX, y:e.layerY};
         let minx = Math.min(firstplot.x, endplot.x), miny = Math.min(firstplot.y, endplot.y), 
             maxx = Math.max(firstplot.x, endplot.x), maxy = Math.max(firstplot.y, endplot.y);
-        if(e.layerX >= minx - 8 && e.layerX <= maxx + 8 && e.layerY + 8 >= miny && e.layerY <= maxy + 8 ){
-            if(lineDistance(node, {x:minx, y:miny}) <= 8){
+        if(e.layerX >= minx - 8 && e.layerX <= maxx + 8 && e.layerY + 8 >= miny && e.layerY <= maxy + 8 ){    //是否在范围内
+            if(lineDistance(node, {x:minx, y:miny}) <= 8){    //到四点距离
                 canvas.style.cursor = "nw-resize";
                 return "topleft";
             }
@@ -197,7 +196,7 @@ class ImageLayer{    //图像处理工具类
                 return "topright";
             }
 
-            if(lineDistance(node, firstplot) <= 8){
+            if(lineDistance(node, firstplot) <= 8){    //到四点距离
                 //canvas.style.cursor = "nw-resize";
                 return "topleft";
             }
@@ -213,7 +212,7 @@ class ImageLayer{    //图像处理工具类
                 //canvas.style.cursor = "ne-resize";
                 return "topright";
             }
-            else if(pointToLine(firstplot, {x:firstplot.x, y:endplot.y}, node) <= 8 ){
+            else if(pointToLine(firstplot, {x:firstplot.x, y:endplot.y}, node) <= 8 ){    //到四边距离
                 canvas.style.cursor = "w-resize";
                 return "left";
             } 
@@ -243,16 +242,15 @@ class ImageLayer{    //图像处理工具类
     //圆形函数
     solidRound(canvas, firstplot, endplot){
         canvas.beginPath();
-        canvas.ellipse((firstplot.x+endplot.x)/2, (firstplot.y+endplot.y)/2, (endplot.x - firstplot.x)/2, (endplot.y - firstplot.y)/2, 0, 0, Math.PI * 2);
+        canvas.ellipse((firstplot.x+endplot.x)/2, (firstplot.y+endplot.y)/2, (endplot.x - firstplot.x)/2, (endplot.y - firstplot.y)/2, 0, 0, Math.PI * 2);    //绘制椭圆函数
         canvas.stroke();
         canvas.closePath();
     }
     //直角三角形
     solidTriangle(canvas, firstplot, endplot){
-
         let right = { x:firstplot.x, y:endplot.y };
         canvas.beginPath();
-        canvas.moveTo(firstplot.x,firstplot.y);
+        canvas.moveTo(firstplot.x,firstplot.y);    //连接三条边
         canvas.lineTo(right.x, right.y);
         canvas.lineTo(endplot.x, endplot.y);
         canvas.closePath();
@@ -261,7 +259,7 @@ class ImageLayer{    //图像处理工具类
     //等腰三角形
     isoscelesTriangle(canvas, firstplot, endplot){
         let right = { x:firstplot.x, y:endplot.y };
-        switch(this.direction[this.directionIndex]){
+        switch(this.direction[this.directionIndex]){    //判断当前旋转状态，不同状态需要不同判断，顶点计算有可能是x有可能是y，后面也是
             case "lower":
             case "upper":
                 right = { x:firstplot.x, y:endplot.y };
@@ -289,7 +287,7 @@ class ImageLayer{    //图像处理工具类
     }
     //菱形
     drawDiamond(canvas, firstplot, endplot){
-        let mid = { x:(firstplot.x + endplot.x)/2, y:(firstplot.y + endplot.y)/2 } , x = (endplot.x - firstplot.x)/2, y = (endplot.y - firstplot.y)/2;
+        let mid = { x:(firstplot.x + endplot.x)/2, y:(firstplot.y + endplot.y)/2 } , x = (endplot.x - firstplot.x)/2, y = (endplot.y - firstplot.y)/2;    //四个顶点
         canvas.beginPath();
         canvas.moveTo( mid.x + x , mid.y );
         canvas.lineTo( mid.x  , mid.y - y );
@@ -312,5 +310,38 @@ class ImageLayer{    //图像处理工具类
         else{
             return Math.abs( node.x - beginline.x );
         }
+    }
+    //在canvas上绘制文本
+    textFill( canvas, str, clinet, index){
+        canvas.save();
+        canvas.fillStyle = "rgb(0,0,0)"
+        canvas.fillText(str, clinet.x, clinet.y + index);
+        canvas.restore();
+    }
+    
+    textTool(textDottedLine, canvas, value, dd){    //绘制文本初始化
+        let textQueue = [];
+        let textWidth = Math.abs(textDottedLine.clinetTo.x - textDottedLine.clinet.x);
+        canvas.font = "20px serif";    //字体大小
+        let index = 0;
+        textQueue[index] = "";
+
+        for( let i of value ){
+            if(canvas.measureText(textQueue[index] + i).width > textWidth || i == "\n"){    //判断是否到达设定长度或有回车键
+                index ++;
+                textQueue[index] = "";
+            }
+            if(i != "\n")textQueue[index] += i;
+        }
+        
+        for(let i = 0 ; i <= textQueue.length - 1 ; i++){
+            if(i === textQueue.length - 1 && dd > 10){    //模拟光标闪烁
+                this.textFill(canvas, textQueue[i]+'|', textDottedLine.clinet , 20*(i+1));
+            }
+            else{
+                this.textFill(canvas, textQueue[i], textDottedLine.clinet , 20*(i+1));
+            }
+        }
+        return textQueue.length*20;    //判断是否需要伸长框体
     }
 }
