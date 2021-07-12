@@ -92,20 +92,20 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             case "isosceles":
                             case "diamond":
                             case "round":
+                            case "shear":
                                 that.canvasDemo.style.zIndex = 1001;    //判断按下的按钮是否为直线或者矩形按钮，需要特殊画布
                                 break;
                             case "eraser":
-                                let str = '../fonts/rubber/'+that.rubberIconSize+'.png';
+                                let str = './fonts/rubber/'+that.rubberIconSize+'.png';
                                 that.canvasVideo.style.cursor = "url("+ str +"),move";
                                 break;
                             case "bucket":
-                                that.canvasVideo.style.cursor = "url(../fonts/rubber/油漆桶.png),move";
+                                that.canvasVideo.style.cursor = "url(./fonts/rubber/油漆桶.png),move";
                                 break;
                             case "extract":
                                 that.canvasVideo.style.cursor = "crosshair";
                                 break;
                             case "text":
-                                //that.textarea.focus();
                                 that.canvasDemo.style.zIndex = 1001;
                                 break;
                         }
@@ -127,6 +127,18 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     if(dd >= 20)dd -= 20;    //20次40毫秒
                     that.ImageLayerNode.dottedBox.call(that, clinet.x, clinet.y, clinetTo.x, clinetTo.y);     //虚线提示框
                 }, 40)
+            }
+        })
+        document.querySelector("#inputPicture").addEventListener("change",(e)=>{
+            that.initialImg = new Image();
+            that.initialImg.src = window.URL.createObjectURL(e.target.files[0]);
+            that.initialImg.onload = ()=>{
+                that.ImageLayerNode.Board.call(that);
+                let node = that.contrast(that.initialImg.width,that.initialImg.height);
+                let x = that.width/2-node.a/2, y = that.height/2-node.b/2;
+                that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,x,y,node.a,node.b);  
+                that.ImageData.splice(0);
+                that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));
             }
         })
         document.querySelectorAll('#sb1>input[type=button]').forEach(element => {
@@ -190,9 +202,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         case "flip":
                             console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
                             let d = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
-                            console.log(d);
+                            break;  
                     }    
                     
+                }
+                switch(element.id){    //保存图片
+                    case "save":{
+                        that.ImageLayerNode.saveImag.call(that);
+                    }
                 }
             })
         })
@@ -222,6 +239,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 case "diamond":
                     that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, minbegin, maxend);    //等腰三角形
                     break;
+                default:
+                    return;
             }
             if(that.toolCurrent !== "line"){
                 that.ImageLayerNode.dottedBox.call(that, beginLine.x, beginLine.y, endLine.x, endLine.y);    //虚线提示框
@@ -310,9 +329,23 @@ class Bind extends Tools{    //绑定事件类，继承主类
             beginmobile = {}, 
             endmobile = {},
             firstplot = {},
-            endplot = {};
+            endplot = {},
+            shearplot = {};
         //controlnode作为标记当前canvas状态的标记，true标识为划线状态，false为修改状态。nodeState为鼠标是否按下的标记，true为按下，false为未按下
         //operation作为按下鼠标之后是否在操作区域的标记，true为在，false不在。clinet保存初始点位置
+
+        document.querySelector("#flipButton>button[id=tailoring]").addEventListener("click",(e)=>{    //裁剪，去除其他部分只留下选中部分
+            if(that.toolCurrent === "shear"){    //当是剪切状态时
+                that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
+                that.ImageLayerNode.updownImage.call(that, that.ImageData, that.forwardData);
+                that.ImageLayerNode.shear.call(that, firstplot, endplot, shearplot);
+                that.canvasVideoCtx.clearRect(0,0,that.width,that.height);
+                that.canvasVideoCtx.drawImage(that.canvasDemo,0,0);  
+                that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
+                that.ImageData.splice(0);
+            }
+        })
+
         this.canvasDemo.addEventListener("mousedown", function(e){
             if(controlnode){    //划线状态时
                 beginLine.x = e.layerX;    //保存初始路径
@@ -337,9 +370,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 }
                 else{
                     clearInterval(that.timeto);
-                    that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
                     let minbegin = {x:Math.min(firstplot.x,endplot.x),y:Math.min(firstplot.y,endplot.y)};
                     let maxend = {x:Math.max(firstplot.x,endplot.x),y:Math.max(firstplot.y,endplot.y)};
+                    that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
                     switch(that.toolCurrent){
                         case "line":
@@ -366,6 +399,20 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.textarea.value = "";
                             break;
                         }    
+                        case "shear":{
+                            new Promise((resolve, reject)=>{
+                                that.ImageLayerNode.updownImage.call(that, that.ImageData, that.forwardData);
+                                that.ImageLayerNode.updownImage.call(that, that.ImageData, that.forwardData);
+                                that.forwardData.pop();
+                                that.forwardData.pop();
+                                that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+                                resolve();
+                            }).then((value)=>{
+                                that.ImageLayerNode.shear.call(that, firstplot, endplot, shearplot);
+                                that.canvasVideoCtx.drawImage(that.canvasDemo,0,0);  
+                                that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
+                            })  
+                        }
                     }
                     that.directionIndex = 0;    //设定翻转和点初始化
                     that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
@@ -396,6 +443,11 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.textarea.style.marginTop = that.textDottedLine.clinet.y + 'px';
                         that.textarea.dispatchEvent(new Event('input', { bubbles: true }));    //触发input事件
                         that.textarea.focus();    //获取焦点
+                    }
+                    if( that.toolCurrent === "shear" ){
+                        that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+                        shearplot = {x1:firstplot.x, y1:firstplot.y, x2:endplot.x, y2:endplot.y};
+                        that.ImageLayerNode.shear.call(that, firstplot, endplot, shearplot);
                     }
                     nodeState = false;    //记录鼠标抬起
                 }
@@ -439,6 +491,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.ImageLayerNode.drawDiamond.call(that, that.canvasDemoCtx, firstplot, endplot);    //等腰三角形
                             break;
                         case "text":
+                            that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
+                            break;
+                        case "shear":
                             that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);     //虚线提示框
                             break;
                     }
@@ -622,7 +677,17 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 that.textDottedLine.clinetTo.x = endplot.x;
                                 that.textDottedLine.clinetTo.y = endplot.y;
                                 that.ImageLayerNode.textTool(that.textDottedLine, that.canvasDemoCtx, that.textValue, 0);
+                                break;
                             }
+                            case "shear":
+                                new Promise((resolve, reject)=>{
+                                    that.ImageLayerNode.updownImage.call(that, that.ImageData, that.forwardData);
+                                    that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+                                    that.forwardData.pop();
+                                    resolve();
+                                }).then((value)=>{
+                                    that.ImageLayerNode.shear.call(that, firstplot, endplot, shearplot);
+                                })
                         }
                         that.ImageLayerNode.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框
                     }

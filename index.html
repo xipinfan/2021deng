@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>在线表情包</title>
     <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <link rel="shortcout icon" href="./fonts/tb.jpg">
     <script defer src="./js/index.js"></script>
     <script defer src="./js/layer/videoLayer.js"></script>
     <script defer src="./js/layer/imageLayer.js"></script>
@@ -26,11 +27,14 @@
             <button id="anticlockwise">逆时针翻转90°</button>
             <button id="reversal">翻转180°</button>
             <button id="flip">翻转</button>
+            <button id="tailoring">裁剪</button>
+            <button id="save">保存图片</button>
         </div>
         <div style="display: flex;flex-direction: column;">
             <div id="manipulationLayout">
                 <div id="inputLayout">
-                    <input type="file" id="inputVido" accept="video/*">
+                    <input type="file" id="inputVido" accept="video/*">视频
+                    <input type="file" id="inputPicture" accept="image/*">图片
                 </div>
                 <div>
                     <button id="demo">wsgefae</button>
@@ -55,6 +59,7 @@
                 <button id="isosceles">等腰三角形</button>
                 <button id="diamond">菱形</button>
                 <button id="text">文本</button>
+                <button id="shear">剪切</button>
                 <button id="withdraw">撤回</button>
                 <button id="forward">前进</button>
             </div>    

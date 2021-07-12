@@ -1,13 +1,43 @@
 class ImageLayer{    //图像处理工具类
+
     whiteBoard(){    //重置绘画板
+        this.canvasVideoCtx.save();
         this.canvasVideoCtx.fillStyle = "rgb(255,255,255)";
         this.canvasVideoCtx.fillRect(0,0,this.width,this.height);
+        this.canvasVideoCtx.restore();
     }
+    
+    Board(){    //重置绘画板
+        //this.canvasPictureCtx.clearRect(0,0,this.width,this.height);
+        this.canvasVideoCtx.clearRect(0,0,this.width,this.height);
+    }
+
+    saveImag(){    //图片保存函数
+        let type = "png";
+        let imgdata = this.canvasVideo.toDataURL(type);
+        let fixtype = function(type){
+            type = type.toLocaleLowerCase().replace(/jpg/i, 'jpeg');
+            let r = type.match(/png|jpeg|bmp|gif/)[0];
+            return 'image/' + r;
+        }
+        imgdata = imgdata.replace(fixtype(type), 'image/octet-stream');    //修改格式与后缀
+        let saveFile = function(data, filename){
+            let link = document.createElement('a');    //通过a标签进行下载
+            link.href = data;
+            link.download = filename;
+            link.click();
+        }
+        let filename = new Date().toLocaleDateString() + '.' + type;    //保存的名称
+        saveFile(imgdata, filename);
+    }
+
     //区域方型涂白,橡皮擦函数
     eliminate(e){
-        this.canvasVideoCtx.fillStyle = "rgb(255,255,255)";
-        this.canvasVideoCtx.fillRect(e.layerX,e.layerY,this.rubberIconSize,this.rubberIconSize);
+        this.canvasVideoCtx.clearRect(e.layerX,e.layerY,this.rubberIconSize,this.rubberIconSize);
+        //this.canvasVideoCtx.fillStyle = "rgba(255,255,255,0)";
+        //this.canvasVideoCtx.fillRect(e.layerX,e.layerY,this.rubberIconSize,this.rubberIconSize);
     }
+
     //目前已废弃，因为路径的连接有问题，且绘制的点其实为直线，滑动速度快之后会形成一条一条的线
     graffiti(x, y){    //绘制路径记录上一个点坐标，然后将下一个点坐标与上一个点相连接
         if(this.penstate){
@@ -19,6 +49,7 @@ class ImageLayer{    //图像处理工具类
             this.ppy = y;
         }
     }
+
     updownImage(x, y){    //保存图片的数据
         if(x.length !== 0){
             let forwarddatenode = x.pop();
@@ -26,10 +57,18 @@ class ImageLayer{    //图像处理工具类
             this.canvasVideoCtx.putImageData(forwarddatenode, 0, 0);    //将当前canvas数据替换为数组中的canvas数据
         }
     }
+
     extractPixels(canvas, x, y){    //提取颜色
         let pixel = canvas.getImageData(x, y, 1, 1);
         let data = pixel.data;
         return `RGB(${data[0]},${data[1]},${data[2]})`;
+    }
+
+    shear(firstplot, endplot, shearplot){    //剪切函数
+        let w = endplot.x - firstplot.x, h = endplot.y - firstplot.y;    //获取需要剪切的，以及需要映射宽高
+        let w1 = shearplot.x2 - shearplot.x1 , h1 = shearplot.y2 - shearplot.y1;
+        this.canvasDemoCtx.drawImage(this.canvasVideo,shearplot.x1,shearplot.y1,w1,h1,firstplot.x,firstplot.y,w,h);    //剪切原图像
+        this.canvasVideoCtx.clearRect(shearplot.x1,shearplot.y1,w1,h1);      //将原图像清空 
     }
 
     paintBucket(ImageDate, x, y, color){    //油漆桶
@@ -314,7 +353,6 @@ class ImageLayer{    //图像处理工具类
     //在canvas上绘制文本
     textFill( canvas, str, clinet, index){
         canvas.save();
-        canvas.fillStyle = "rgb(0,0,0)"
         canvas.fillText(str, clinet.x, clinet.y + index);
         canvas.restore();
     }
@@ -322,7 +360,9 @@ class ImageLayer{    //图像处理工具类
     textTool(textDottedLine, canvas, value, dd){    //绘制文本初始化
         let textQueue = [];
         let textWidth = Math.abs(textDottedLine.clinetTo.x - textDottedLine.clinet.x);
-        canvas.font = "20px serif";    //字体大小
+        canvas.save();
+        canvas.font = "50px serif";    //字体大小
+        canvas.fillStyle = document.querySelector("input[type=color]").value;
         let index = 0;
         textQueue[index] = "";
 
@@ -342,6 +382,7 @@ class ImageLayer{    //图像处理工具类
                 this.textFill(canvas, textQueue[i], textDottedLine.clinet , 20*(i+1));
             }
         }
+        canvas.restore();
         return textQueue.length*20;    //判断是否需要伸长框体
     }
 }

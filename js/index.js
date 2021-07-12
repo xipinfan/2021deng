@@ -40,7 +40,7 @@ class Tools{
     }
     dataInit(){
         this.tool = [    //工具初始化
-            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles","diamond","text"
+            "pencil","line","brush","eraser","rectangle","round","bucket","extract","rightTriangle","isosceles","diamond","text","shear"
         ];
         this.direction = [ "upper","right","lower","left" ];    //设定操作画布朝向
         this.directionIndex = 0;    //设定操作画布当前朝向
@@ -133,6 +133,16 @@ class Tools{
         //this.canvasVideo.style.border = '2px'
         parentNode.appendChild(this.canvasVideo);
 
+        // //设定图片canvas
+        // this.canvasPicture = document.createElement('canvas');
+        // this.canvasPicture.width = 1230;
+        // this.canvasPicture.height = 665;
+        // this.canvasPicture.style.position = "absolute";
+        // this.canvasPicture.style.zIndex = "999";
+        // this.canvasPictureCtx = this.canvasPicture.getContext('2d');
+        // //this.canvasVideo.style.border = '2px'
+        // parentNode.appendChild(this.canvasPicture);
+
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');
         this.canvasBackground.className = "canvasStyle";
@@ -212,12 +222,14 @@ class Tools{
         //添加视频，正式使用不需要添加
         //document.querySelector('#inputLayout').appendChild(this.backstageVideo);
         this.initialImg = new Image();
-        this.initialImg.src = '../fonts/hkd.png';
+        this.initialImg.src = './fonts/hkd.png';
         this.initialImg.onload = function(){
-            let node = that.contrast(that.initialImg.width,that.initialImg.height)
-            that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,0,0,node.a,node.b); 
-            document.getElementById('white').click();
+            let node = that.contrast(that.initialImg.width,that.initialImg.height);
+            let x = that.width/2-node.a/2, y = that.height/2-node.b/2;
+            that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.initialImg.width,that.initialImg.height,x,y,node.a,node.b); 
+            //document.getElementById('white').click();
         }
     }
+
 }
 
