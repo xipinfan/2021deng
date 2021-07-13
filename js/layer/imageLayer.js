@@ -13,14 +13,90 @@ class ImageLayer{    //图像处理工具类
     }
 
     saveImag(){    //图片保存函数
+        let imageData = this.canvasVideoCtx.getImageData(0,0,this.width,this.height);
+        let pxList = transToRowCol( transToRGBA( imageData.data ), this.width );
+        let boundary = getBoundary(this.width, this.height, pxList);
+        let px = transToPlain(pxList.slice(boundary.y1, boundary.y2), boundary.x1, boundary.x2);
+        let canvasTemporarily = document.createElement('canvas');
+        let canvasTemporarilyCtx = canvasTemporarily.getContext('2d');
+        canvasTemporarily.width = boundary.x2 - boundary.x1;
+        canvasTemporarily.height = boundary.y2 - boundary.y1;
+        let imagedata = canvasTemporarilyCtx.getImageData(0,0,boundary.x2 - boundary.x1,boundary.y2 - boundary.y1);
+        for( let i = 0 ; i < imagedata.data.length ; i++){
+            imagedata.data[i] = px[i];
+        }
+        console.log(imagedata);
+        canvasTemporarilyCtx.putImageData( imagedata, 0, 0 );
+
+        function transToRGBA(data){
+            let pxlength = data.length;
+            let pxlist = [];
+
+            for(let i = 0 ; i < pxlength ; i += 4){
+                pxlist.push({
+                    red:data[i],
+                    green:data[i+1],
+                    blue:data[i+2],
+                    alpha:data[i+3]
+                })
+            }
+            
+            return pxlist;
+        }
+
+        function transToRowCol(pxlist, width){
+            let pxlength = pxlist.length;
+            let pxRowList = [];
+
+            for(let i = 0 ; i < pxlength ; i += width){
+                pxRowList.push(pxlist.slice(i, i+width));
+            }
+            
+            return pxRowList;
+        }
+
+        function getBoundary( width, height, pxList ){
+            console.log(pxList);
+            let x1 = width, x2 = 0, y1 = height, y2 = 0;
+            for ( let i = 0; i < width; i++ ){
+                for (let j = 0; j < height ; j++){
+                    if(pxList[j][i].alpha){
+                        x1 = Math.min(i, x1);
+                        x2 = Math.max(i, x2);
+                        y1 = Math.min(j, y1);
+                        y2 = Math.max(j, y2);
+                    }
+                }
+            }
+            return { x1,x2,y1,y2 };
+        }
+
+        function transToPlain(rowlist, start, end){
+            let pxList = [];
+
+            rowlist.forEach(function(colist){
+                colist.slice(start, end).forEach(function(pxData){
+                    pxList.push(pxData.red);
+                    pxList.push(pxData.green);
+                    pxList.push(pxData.blue);
+                    pxList.push(pxData.alpha);
+                });
+            });
+
+            return pxList;
+        }
+
+
         let type = "png";
-        let imgdata = this.canvasVideo.toDataURL(type);
+        let imgdata = canvasTemporarily.toDataURL(type);
         let fixtype = function(type){
             type = type.toLocaleLowerCase().replace(/jpg/i, 'jpeg');
             let r = type.match(/png|jpeg|bmp|gif/)[0];
             return 'image/' + r;
         }
+
         imgdata = imgdata.replace(fixtype(type), 'image/octet-stream');    //修改格式与后缀
+
         let saveFile = function(data, filename){
             let link = document.createElement('a');    //通过a标签进行下载
             link.href = data;
@@ -28,6 +104,7 @@ class ImageLayer{    //图像处理工具类
             link.click();
         }
         let filename = new Date().toLocaleDateString() + '.' + type;    //保存的名称
+
         saveFile(imgdata, filename);
     }
 
@@ -54,6 +131,7 @@ class ImageLayer{    //图像处理工具类
         if(x.length !== 0){
             let forwarddatenode = x.pop();
             y.push(this.canvasVideoCtx.getImageData(0,0,this.width,this.height));    //将当前的canvas数据保存在数组里
+            console.log(forwarddatenode);
             this.canvasVideoCtx.putImageData(forwarddatenode, 0, 0);    //将当前canvas数据替换为数组中的canvas数据
         }
     }
@@ -97,7 +175,7 @@ class ImageLayer{    //图像处理工具类
                 let y1 = pos.y + i[1];
                 index = (y1 * width + x1 ) * 4;
                 let colorto = this.rgbToGray( data[index],data[index+1],data[index+2] );
-                if(x1 >= 0 && y1 >=0 && x1 < width && y1 < height && !vis[y1][x1] && colorto - 50 <= grayColor && colorto + 50 >= grayColor ){    //通过灰度值判断
+                if(x1 >= 0 && y1 >=0 && x1 < width && y1 < height && !vis[y1][x1] && colorto - 20 <= grayColor && colorto + 20 >= grayColor ){    //通过灰度值判断
                     vis[y1][x1] = 1;
                     queue.push({ x:x1, y:y1 });
                 }
@@ -361,7 +439,7 @@ class ImageLayer{    //图像处理工具类
         let textQueue = [];
         let textWidth = Math.abs(textDottedLine.clinetTo.x - textDottedLine.clinet.x);
         canvas.save();
-        canvas.font = "50px serif";    //字体大小
+        canvas.font = "20px serif";    //字体大小
         canvas.fillStyle = document.querySelector("input[type=color]").value;
         let index = 0;
         textQueue[index] = "";
