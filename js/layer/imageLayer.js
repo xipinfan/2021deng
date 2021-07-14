@@ -19,13 +19,14 @@ class ImageLayer{    //图像处理工具类
         let px = transToPlain(pxList.slice(boundary.y1, boundary.y2), boundary.x1, boundary.x2);
         let canvasTemporarily = document.createElement('canvas');
         let canvasTemporarilyCtx = canvasTemporarily.getContext('2d');
+
         canvasTemporarily.width = boundary.x2 - boundary.x1;
         canvasTemporarily.height = boundary.y2 - boundary.y1;
+
         let imagedata = canvasTemporarilyCtx.getImageData(0,0,boundary.x2 - boundary.x1,boundary.y2 - boundary.y1);
         for( let i = 0 ; i < imagedata.data.length ; i++){
             imagedata.data[i] = px[i];
         }
-        console.log(imagedata);
         canvasTemporarilyCtx.putImageData( imagedata, 0, 0 );
 
         function transToRGBA(data){
@@ -56,7 +57,6 @@ class ImageLayer{    //图像处理工具类
         }
 
         function getBoundary( width, height, pxList ){
-            console.log(pxList);
             let x1 = width, x2 = 0, y1 = height, y2 = 0;
             for ( let i = 0; i < width; i++ ){
                 for (let j = 0; j < height ; j++){
@@ -85,7 +85,6 @@ class ImageLayer{    //图像处理工具类
 
             return pxList;
         }
-
 
         let type = "png";
         let imgdata = canvasTemporarily.toDataURL(type);

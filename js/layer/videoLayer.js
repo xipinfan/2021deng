@@ -12,16 +12,11 @@ class Canvas{
         let node = that.contrast(videoWidth,videoHeight);
         render();
         function render(){    //将视频投放到canvas上
-            let ed = window.requestAnimationFrame(render);    //每秒触发60次这个函数
+            that.ed = window.requestAnimationFrame(render);    //每秒触发60次这个函数
             that.videoImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));
-            if(that.videoImageData.length>=100){
-                window.cancelAnimationFrame(ed);
-                if(that.recorder){
-                    that.recorder.stop();
-                }
-            }
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-            that.canvasVideoCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight,0,0,node.a,node.b);
+            let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+            that.canvasVideoCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight, x, y,node.a,node.b);
             that.canvasVideoTapeCtx.clearRect(0,0,that.canvasVideoTape.width,that.canvasVideoTape.height);
             that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight);
         }

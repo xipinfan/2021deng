@@ -70,6 +70,9 @@ class Tools{
                     if (hex === "0") {
                         hex += hex;
                     }
+                    if (hex.length === 1){
+                        hex = "0" + hex;
+                    }
                     strHex += hex;
                 }
                 return strHex;
@@ -125,6 +128,8 @@ class Tools{
         let parentNode = document.querySelector("#canvasLayout");
 
         parentNode.appendChild(this.textarea);
+
+        this.nodePlot = { x:615,y:332.5 };
 
         //设定图片canvas
         this.canvasVideo = document.createElement('canvas');

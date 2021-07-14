@@ -29,20 +29,43 @@ class Bind extends Tools{    //绑定事件类，继承主类
     }
     videoButtonBindInit(){    //视频指令绑定
         let that = this;    //保存this作用域
-        document.querySelector('#play1').addEventListener("click",function(e){    //播放视频
-            that.backstageVideo.play(); 
+        document.querySelectorAll('#videoButton>button').forEach((element)=>{
+            element.addEventListener("click",function(e){
+                switch(element.id){
+                    case "play1":{    //播放视频
+                        that.backstageVideo.play(); 
+                        break;
+                    }  
+                    case "pause":{    //停止播放视频
+                        that.backstageVideo.pause();
+                        if(that.ed){
+                            window.cancelAnimationFrame(that.ed);
+                        }
+                        break;
+                    }
+                    case "recording":{    //开启视频录制
+                        that.CanvasNode.recordingVideo.call(that);
+                        break;
+                    }
+                    case "stop":{   //停止视频录制
+                        that.CanvasNode.stopRecordingVideo.call(that);
+                        if(that.ed){
+                            window.cancelAnimationFrame(that.ed);
+                        }
+                        break;
+                    }
+                    case "intercept":{    //截取当前帧
+                        that.backstageVideo.pause();
+                        if(that.ed){
+                            window.cancelAnimationFrame(that.ed);
+                        }
+                        break;
+                    } 
+                }
+            })
         })
-        document.querySelector('#pause').addEventListener("click",function(e){    //停止播放视频
-            that.backstageVideo.pause();
-        })
-        document.querySelector('#inputVido').addEventListener("change",function(e){    //插入视频
+        document.querySelector("#inputVido").addEventListener("change",(e)=>{
             that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
-        })
-        document.querySelector('#recording').addEventListener("click",function(e){    //开启视频录制
-            that.CanvasNode.recordingVideo.call(that);
-        })
-        document.querySelector("#stop").addEventListener("click",function(e){    //停止视频录制
-            that.CanvasNode.stopRecordingVideo.call(that);
         })
     }
     canvasButtonBindInit(){    //图像指令绑定
@@ -273,8 +296,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     break;
                 case 'extract':
                     let RGB = that.ImageLayerNode.extractPixels(that.canvasVideoCtx , e.layerX, e.layerY);    //提取颜色
+                    console.log(RGB.colorHex());
                     colorto.innerText = RGB;
                     colorchoice.value = RGB.colorHex();
+                    that.strokeColor = colorchoice.value.toLowerCase();
+                    that.canvasVideoCtx.fillStyle  = that.strokeColor;
+                    that.canvasVideoCtx.strokeStyle  = that.strokeColor;
+                    that.canvasDemoCtx.fillStyle  = that.strokeColor;
+                    that.canvasDemoCtx.strokeStyle  = that.strokeColor;
                     break;
                 case "bucket":
                     let ImageDate = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
