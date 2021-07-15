@@ -27,3 +27,43 @@ button{
     width: 1230px;
 
 }
+#progresswrap{
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, .5);
+    height: 40px;
+    width: 1230px;
+}
+#progressopen{
+    margin-left: 20px;
+    /* background-color: rgba(0, 0, 0, .7); */
+    border-radius: 50%;
+    height: 28px;
+    width: 28px;
+}
+#progressobar{
+    display: flex;
+    align-items: center;
+    background-color: rgba(92, 92, 92,0.7);
+    border-radius: 10px;
+    cursor: pointer;
+    height: 6px;
+    width: 1000px;
+}
+#progressoafter{
+    background-color: rgb(0, 161, 214);
+    border-radius: 10px;
+    height: 6px;
+    width: 200px;
+}
+#progressoindex{
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 50%;
+    height: 15px;
+    width: 15px;
+    margin-left: -15px;
+}
+.timedisplay{
+    margin-left: 12px;
+    margin-right: 12px;
+}

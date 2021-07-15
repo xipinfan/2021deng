@@ -2,13 +2,18 @@ class Canvas{
     //将视频投射到画布上
     openCanvasVideo(){
         let that = this;
-        let inputVideo = document.querySelector('input');
-        this.backstageVideo.src = window.URL.createObjectURL(inputVideo.files[0]);    //获取视频所在路径并播放
-        this.backstageVideo.controls = true;
-        setTimeout(()=>{that.backstageVideo.play();},0)    //异步播放视频
+        new Promise((resolve, reject)=>{
+            let inputVideo = document.querySelector('input');
+            this.backstageVideo.src = window.URL.createObjectURL(inputVideo.files[0]);    //获取视频所在路径并播放
+            this.backstageVideo.controls = true;
+            resolve();
+        }).then((e)=>{
+            that.backstageVideo.play();    //异步播放视频
+        })
     }
     onloadOpenVideo(videoWidth,videoHeight){
         let that = this;
+        console.log("?????");
         let node = that.contrast(videoWidth,videoHeight);
         render();
         function render(){    //将视频投放到canvas上

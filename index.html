@@ -22,6 +22,19 @@
 <body >
     <div id="Layout">
         <div id="canvasLayout"></div>
+        <div id="progresswrap">
+            <!-- <div id="progressopen"></div> -->
+            <div id="progressopen" >
+                <svg t="1626356788840" id="pauseicon" style="display: none;" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2024" width="30" height="30"><path d="M512 63.9C265.2 63.9 65.1 264.5 65.1 512c0 247.5 200.1 448.1 446.9 448.1S958.9 759.5 958.9 512c0-247.5-200.1-448.1-446.9-448.1zM448.2 672H320.5V352h127.7v320z m255.3 0H575.8V352h127.7v320z" p-id="2025" fill="rgba(0, 0, 0, .7)"></path></svg>
+                <svg t="1626353731288" id="openicon" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2035" width="30" height="30"><path d="M512 64C264.576 64 64 264.576 64 512s200.576 448 448 448 448-200.576 448-448S759.424 64 512 64zM414.656 726.272 414.656 297.728l311.616 190.464L414.656 726.272z" p-id="2036" fill="rgba(0, 0, 0, .7)"></path></svg>
+            </div>
+            <span class="timedisplay">00:00</span>
+            <div id="progressobar">
+                <div id="progressoafter"></div>
+                <div id="progressoindex"></div>
+            </div>
+            <span class="timedisplay">00:99</span>
+        </div>
         <div style="display: flex;" id="flipButton">
             <button id="clockwise">顺时针翻转90°</button>
             <button id="anticlockwise">逆时针翻转90°</button>

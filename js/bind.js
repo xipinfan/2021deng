@@ -24,16 +24,22 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.backstageVideo.addEventListener('canplay',function(){        //准备就绪视频时调用，开启canvas打印video图像
             that.canvasVideoTape.width = this.videoWidth;
             that.canvasVideoTape.height = this.videoHeight;
+            that.videoData = { w:this.videoWidth, h:this.videoHeight }
             that.CanvasNode.onloadOpenVideo.call(that,this.videoWidth,this.videoHeight);
         })
     }
     videoButtonBindInit(){    //视频指令绑定
         let that = this;    //保存this作用域
+        let openicon = document.getElementById("openicon"),
+            pauseicon = document.getElementById("pauseicon");
+        pauseicon.style.display = "none";
+        openicon.style.display = "inline";
         document.querySelectorAll('#videoButton>button').forEach((element)=>{
             element.addEventListener("click",function(e){
                 switch(element.id){
                     case "play1":{    //播放视频
                         that.backstageVideo.play(); 
+                        that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
                         break;
                     }  
                     case "pause":{    //停止播放视频
@@ -66,6 +72,28 @@ class Bind extends Tools{    //绑定事件类，继承主类
         })
         document.querySelector("#inputVido").addEventListener("change",(e)=>{
             that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
+        })
+        document.querySelector("#progressopen").addEventListener("click",(e)=>{
+            if(that.backstageVideo.src){
+                if(that.backstageVideo.paused === false){
+                    that.backstageVideo.pause();
+                    pauseicon.style.display = "inline";
+                    openicon.style.display = "none";
+                }
+                else{
+                    that.backstageVideo.play();
+                    pauseicon.style.display = "none";
+                    openicon.style.display = "inline";
+                } 
+                if(that.ed){
+                    if(that.backstageVideo.paused){
+                        window.cancelAnimationFrame(that.ed);
+                    }
+                    else{
+                        that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
+                    }
+                }    
+            } 
         })
     }
     canvasButtonBindInit(){    //图像指令绑定
