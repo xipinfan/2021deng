@@ -54,7 +54,7 @@ class Tools{
         this.textarea.style.zIndex = -999;    //藏在画布地下
         this.textarea.style.position = "absolute";    //绝对定位
 
-        this.videoImageData = [];    //保存录制的图像
+        this.progressobarWidth = 1000;
 
         String.prototype.colorHex = function () {
         // RGB颜色值的正则

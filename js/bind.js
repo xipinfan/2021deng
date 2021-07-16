@@ -21,24 +21,55 @@ class Bind extends Tools{    //绑定事件类，继承主类
     }
     videoBindingInit(){    //视频初始
         let that = this;    //保存this作用域
+        this.progressoafter = document.getElementById("progressoafter");
+        this.videoTimedisplay = document.querySelectorAll("#progresswrap>span");
         this.backstageVideo.addEventListener('canplay',function(){        //准备就绪视频时调用，开启canvas打印video图像
             that.canvasVideoTape.width = this.videoWidth;
             that.canvasVideoTape.height = this.videoHeight;
+            that.videoTimedisplay[1].innerHTML = that.CanvasNode.timeChange(this.duration);
             that.videoData = { w:this.videoWidth, h:this.videoHeight }
             that.CanvasNode.onloadOpenVideo.call(that,this.videoWidth,this.videoHeight);
+            console.log("???3");
         })
     }
     videoButtonBindInit(){    //视频指令绑定
-        let that = this;    //保存this作用域
+        let that = this, nodeState = false;    //保存this作用域
         let openicon = document.getElementById("openicon"),
-            pauseicon = document.getElementById("pauseicon");
+            pauseicon = document.getElementById("pauseicon"),
+            progressobar = document.getElementById("progressrange");
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
+        progressobar.addEventListener("mousedown",(e)=>{
+            if(that.backstageVideo.readyState === 4){  
+                let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
+                that.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
+                that.backstageVideo.currentTime = percent * that.backstageVideo.duration;
+                nodeState = true;
+            }
+        })
+
+        let drawEndBind = ['mouseup','mouseleave'];
+        drawEndBind.forEach(function(item){
+            progressobar.addEventListener(item,function(e){    //当鼠标在canvas松开时结束一次记录
+                nodeState = false;
+            })
+        })
+
+        progressobar.addEventListener("mousemove", (e)=>{
+            //console.log(e.pageX - progressobar.offsetLeft);
+            if(nodeState && that.backstageVideo.readyState === 4){
+                let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
+                that.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
+                that.backstageVideo.currentTime = percent * that.backstageVideo.duration;
+            }
+        })
+
         document.querySelectorAll('#videoButton>button').forEach((element)=>{
             element.addEventListener("click",function(e){
                 switch(element.id){
                     case "play1":{    //播放视频
                         that.backstageVideo.play(); 
+                        console.log("???2");
                         that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
                         break;
                     }  
@@ -69,12 +100,12 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     } 
                 }
             })
-        })
+        });
         document.querySelector("#inputVido").addEventListener("change",(e)=>{
             that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
-        })
+        });
         document.querySelector("#progressopen").addEventListener("click",(e)=>{
-            if(that.backstageVideo.src){
+            if(that.backstageVideo.readyState === 4){
                 if(that.backstageVideo.paused === false){
                     that.backstageVideo.pause();
                     pauseicon.style.display = "inline";
@@ -90,11 +121,12 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         window.cancelAnimationFrame(that.ed);
                     }
                     else{
+                        console.log("???1");
                         that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
                     }
                 }    
             } 
-        })
+        });
     }
     canvasButtonBindInit(){    //图像指令绑定
         let that = this;
@@ -333,7 +365,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     that.canvasDemoCtx.fillStyle  = that.strokeColor;
                     that.canvasDemoCtx.strokeStyle  = that.strokeColor;
                     break;
-                case "bucket":
+                case "bucket":  //油漆桶
                     let ImageDate = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
                     that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
                     that.ImageLayerNode.paintBucket(ImageDate, e.layerX, e.layerY, that.strokeColor);

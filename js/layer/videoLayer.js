@@ -13,14 +13,20 @@ class Canvas{
     }
     onloadOpenVideo(videoWidth,videoHeight){
         let that = this;
-        console.log("?????");
         let node = that.contrast(videoWidth,videoHeight);
         render();
         function render(){    //将视频投放到canvas上
-            that.ed = window.requestAnimationFrame(render);    //每秒触发60次这个函数
-            that.videoImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));
-            that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
+            that.ed = window.requestAnimationFrame(render);    //每秒触发60次这个函数
+            
+            that.videoTimedisplay[0].innerHTML = that.CanvasNode.timeChange(that.backstageVideo.currentTime);    //将当前视频时间显示在屏幕上
+            that.progressoafter.style.width = (that.backstageVideo.currentTime/that.backstageVideo.duration) * that.progressobarWidth + "px";
+            if(that.backstageVideo.paused)window.cancelAnimationFrame(that.ed);
+
+            //that.videoImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));
+
+            that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight, x, y,node.a,node.b);
             that.canvasVideoTapeCtx.clearRect(0,0,that.canvasVideoTape.width,that.canvasVideoTape.height);
             that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight);
@@ -48,5 +54,16 @@ class Canvas{
         if(this.recorder){
             this.recorder.stop();
         }
+    }
+
+    timeChange(time){
+
+        let t = parseInt(time);
+        let m = parseInt(t/60).toString();
+        let s = (t - m*60).toString();
+
+        if(m.length < 2)m = '0' + m;
+        if(s.length < 2)s = '0' + s;
+        return `${m}:${s}`;
     }
 }
