@@ -37,6 +37,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let openicon = document.getElementById("openicon"),
             pauseicon = document.getElementById("pauseicon"),
             progressobar = document.getElementById("progressrange");
+        this.saveto = [];
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
         progressobar.addEventListener("mousedown",(e)=>{
@@ -132,6 +133,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let that = this;
         let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
         let colorto = document.querySelector('#rgb');    //获取展示项
+        that.base = false;
         colorto.innerText = "RGB(0,0,0)";
         document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
             switch(element.id){
@@ -292,6 +294,49 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 switch(element.id){    //保存图片
                     case "save":{
                         that.ImageLayerNode.saveImag.call(that);
+                        break;
+                    }
+                    case "base64":{
+                        if(that.backstageVideo.readyState === 4){
+                            if(!that.base){
+                            that.base = true;  
+                            }
+                            else{
+                                that.base = false;
+                                window.cancelAnimationFrame(that.ed);
+                                that.backstageVideo.pause();
+                            }    
+                        }
+                        break;
+                    }
+                    case "daochu":{
+                        let dd = 0;
+                        let img = new Image();
+                        img.src = that.saveto[dd];
+                        document.querySelector("#inputVido").value = "";
+                        that.backstageVideo.src = "";
+                        that.videoTimedisplay[0].innerHTML = "00:00";
+                        that.videoTimedisplay[1].innerHTML = that.CanvasNode.timeChange(that.saveto.length/60);
+                        that.progressoafter.style.width = "0px";
+
+                        img.onload = function(){
+                            that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+                            that.canvasVideoCtx.drawImage(img, 0, 0);    
+                        }
+                        
+                        func();
+                        function func(){
+                            let d1 = window.requestAnimationFrame(func);
+                            if(dd >= that.saveto.length - 1 ){
+                                window.cancelAnimationFrame(d1);
+                            }
+                            img.src = that.saveto[dd];
+                            img.onload = function(){
+                                that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+                                that.canvasVideoCtx.drawImage(img, 0, 0);    
+                            }
+                            dd ++;
+                        }
                     }
                 }
             })

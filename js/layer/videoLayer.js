@@ -14,6 +14,7 @@ class Canvas{
     onloadOpenVideo(videoWidth,videoHeight){
         let that = this;
         let node = that.contrast(videoWidth,videoHeight);
+        let dd = 0;
         render();
         function render(){    //将视频投放到canvas上
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
@@ -24,12 +25,19 @@ class Canvas{
             that.progressoafter.style.width = (that.backstageVideo.currentTime/that.backstageVideo.duration) * that.progressobarWidth + "px";
             if(that.backstageVideo.paused)window.cancelAnimationFrame(that.ed);
 
-            //that.videoImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));
-
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-            that.canvasVideoCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight, x, y,node.a,node.b);
+            that.canvasVideoCtx.drawImage( that.backstageVideo, 0, 0, videoWidth, videoHeight, x, y, node.a, node.b);
+            //录像canvas
             that.canvasVideoTapeCtx.clearRect(0,0,that.canvasVideoTape.width,that.canvasVideoTape.height);
             that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight);
+
+            if(that.base){
+                document.getElementById("base64").style.backgroundColor = "red"; 
+                that.saveto.push(that.canvasVideoTape.toDataURL("image/png"));
+            }
+            else{
+                document.getElementById("base64").style.backgroundColor = "blue";
+            }
         }
     }
     //视频录制函数

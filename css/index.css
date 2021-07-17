@@ -46,7 +46,6 @@ button{
     align-items: center;
     background-color: rgba(92, 92, 92,0.7);
     border-radius: 10px;
-    cursor: pointer;
     height: 6px;
     width: 1000px;
 }
@@ -69,10 +68,11 @@ button{
 }
 .timedisplay{
     margin-left: 15px;
-    margin-right: 18px;
+    margin-right: 20px;
 }
 #progressrange{
     height: 15px;
     display: flex;
     align-items: center;
+    cursor: pointer;
 }
