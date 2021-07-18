@@ -74,4 +74,81 @@ class Canvas{
         if(s.length < 2)s = '0' + s;
         return `${m}:${s}`;
     }
+
+    recordPlay(){
+        let that = this;
+        let img = new Image();
+        func();
+        function func(){
+            that.playbackStatus = true;
+            that.AnimationFrameVideo = window.requestAnimationFrame(func);
+
+            that.progressoafter.style.width = ((that.videoOnload + 1)/that.saveto.length) * that.progressobarWidth + "px";
+            that.videoTimedisplay[0].innerHTML = that.CanvasNode.timeChange((that.videoOnload + 1)/60);    //将当前视频时间显示在屏幕上
+
+            img.src = that.saveto[that.videoOnload];
+            img.onload = function(){
+                let node = that.contrast(this.width,this.height);
+                let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
+                that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+                that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);     
+            }
+            that.videoOnload = that.videoOnload + 1;
+            if(that.videoOnload >= that.saveto.length ){
+                document.querySelector("#progressopen").click();
+            }
+        }
+    }
+
+    pictureLoad(){
+        let that = this;
+        let img = new Image();
+        img.src = this.saveto[this.videoOnload];
+        img.onload = function(){
+            let node = that.contrast(this.width,this.height);
+            let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
+            that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+            that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
+
+        }
+    }
+
+    canvasGIF(){
+        this.videoOnload = 0;
+        this.AnimationFrameVideo = null;
+        this.playbackStatus = false;
+        document.querySelector("#inputVido").value = "";
+        this.backstageVideo.src = "";
+        this.videoTimedisplay[0].innerHTML = "00:00";
+        this.videoTimedisplay[1].innerHTML = this.CanvasNode.timeChange(this.saveto.length/60);
+        this.progressoafter.style.width = "0px";
+        this.videoIndex = "canvas";
+    }
+
+    saveBase64(){
+        if(!this.base){
+            this.base = true;  
+        }
+        else{
+            this.base = false;
+            window.cancelAnimationFrame(this.ed);
+            this.backstageVideo.pause();
+            document.getElementById("base64").style.backgroundColor = "blue";
+        }
+    }
+
+    progressbarVideo(percent, e){
+        if(this.backstageVideo.readyState === 4){  
+            this.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
+            this.backstageVideo.currentTime = percent * this.backstageVideo.duration;
+        }
+    }
+
+    progressbarCanvas(percent, e){
+        this.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
+        this.videoOnload = parseInt(percent * this.saveto.length);
+        this.CanvasNode.pictureLoad.call(this);
+    }
 }

@@ -29,7 +29,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
             that.videoTimedisplay[1].innerHTML = that.CanvasNode.timeChange(this.duration);
             that.videoData = { w:this.videoWidth, h:this.videoHeight }
             that.CanvasNode.onloadOpenVideo.call(that,this.videoWidth,this.videoHeight);
-            console.log("???3");
         })
     }
     videoButtonBindInit(){    //视频指令绑定
@@ -37,15 +36,19 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let openicon = document.getElementById("openicon"),
             pauseicon = document.getElementById("pauseicon"),
             progressobar = document.getElementById("progressrange");
+        this.videoIndex = "video";
         this.saveto = [];
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
+
         progressobar.addEventListener("mousedown",(e)=>{
-            if(that.backstageVideo.readyState === 4){  
-                let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
-                that.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
-                that.backstageVideo.currentTime = percent * that.backstageVideo.duration;
-                nodeState = true;
+            let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
+            nodeState = true;
+            if(that.videoIndex === "video"){
+                that.CanvasNode.progressbarVideo.call(that,percent, e);   
+            }
+            else if(that.videoIndex === "canvas"){
+                that.CanvasNode.progressbarCanvas.call(that,percent, e);   
             }
         })
 
@@ -57,11 +60,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
         })
 
         progressobar.addEventListener("mousemove", (e)=>{
-            //console.log(e.pageX - progressobar.offsetLeft);
-            if(nodeState && that.backstageVideo.readyState === 4){
+            if(nodeState){
                 let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
-                that.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
-                that.backstageVideo.currentTime = percent * that.backstageVideo.duration;
+                if(that.videoIndex === "video"){
+                    that.CanvasNode.progressbarVideo.call(that,percent, e);   
+                }
+                else if(that.videoIndex === "canvas"){
+                    that.CanvasNode.progressbarCanvas.call(that,percent, e); 
+                } 
             }
         })
 
@@ -70,7 +76,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 switch(element.id){
                     case "play1":{    //播放视频
                         that.backstageVideo.play(); 
-                        console.log("???2");
                         that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
                         break;
                     }  
@@ -106,27 +111,54 @@ class Bind extends Tools{    //绑定事件类，继承主类
             that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
         });
         document.querySelector("#progressopen").addEventListener("click",(e)=>{
-            if(that.backstageVideo.readyState === 4){
-                if(that.backstageVideo.paused === false){
-                    that.backstageVideo.pause();
+            if(that.videoIndex === "video"){
+                if(that.backstageVideo.readyState === 4){
+                    if(that.backstageVideo.paused === false){
+                        that.backstageVideo.pause();
+                        pauseicon.style.display = "inline";
+                        openicon.style.display = "none";
+                    }
+                    else{
+                        that.backstageVideo.play();
+                        pauseicon.style.display = "none";
+                        openicon.style.display = "inline";
+                    } 
+                    if(that.ed){
+                        if(that.backstageVideo.paused){
+                            window.cancelAnimationFrame(that.ed);
+                        }
+                        else{
+                            that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
+                        }
+                    }    
+                }     
+            }
+            else if(that.videoIndex === "canvas"){
+                if(that.playbackStatus === true){
+                    window.cancelAnimationFrame(that.AnimationFrameVideo);
+                    pauseicon.style.display = "none";
+                    openicon.style.display = "inline";
+                    that.playbackStatus = false;
+                }
+                else{
+                    if(that.videoOnload === that.saveto.length ){
+                        that.videoOnload = 0;
+                    }
+                    that.CanvasNode.recordPlay.call(that); 
+                    
                     pauseicon.style.display = "inline";
                     openicon.style.display = "none";
                 }
-                else{
-                    that.backstageVideo.play();
-                    pauseicon.style.display = "none";
-                    openicon.style.display = "inline";
-                } 
-                if(that.ed){
-                    if(that.backstageVideo.paused){
-                        window.cancelAnimationFrame(that.ed);
-                    }
-                    else{
-                        console.log("???1");
-                        that.CanvasNode.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);
-                    }
-                }    
-            } 
+            }
+        });
+        document.getElementById("base64").addEventListener("click",(e)=>{
+            if(that.backstageVideo.readyState === 4){
+                that.CanvasNode.saveBase64.call(that);   
+            }
+        });
+        document.getElementById("daochu").addEventListener("click",(e)=>{
+            that.CanvasNode.canvasGIF.call(that);
+            that.CanvasNode.pictureLoad.call(that);
         });
     }
     canvasButtonBindInit(){    //图像指令绑定
@@ -295,48 +327,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     case "save":{
                         that.ImageLayerNode.saveImag.call(that);
                         break;
-                    }
-                    case "base64":{
-                        if(that.backstageVideo.readyState === 4){
-                            if(!that.base){
-                            that.base = true;  
-                            }
-                            else{
-                                that.base = false;
-                                window.cancelAnimationFrame(that.ed);
-                                that.backstageVideo.pause();
-                            }    
-                        }
-                        break;
-                    }
-                    case "daochu":{
-                        let dd = 0;
-                        let img = new Image();
-                        img.src = that.saveto[dd];
-                        document.querySelector("#inputVido").value = "";
-                        that.backstageVideo.src = "";
-                        that.videoTimedisplay[0].innerHTML = "00:00";
-                        that.videoTimedisplay[1].innerHTML = that.CanvasNode.timeChange(that.saveto.length/60);
-                        that.progressoafter.style.width = "0px";
-
-                        img.onload = function(){
-                            that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-                            that.canvasVideoCtx.drawImage(img, 0, 0);    
-                        }
-                        
-                        func();
-                        function func(){
-                            let d1 = window.requestAnimationFrame(func);
-                            if(dd >= that.saveto.length - 1 ){
-                                window.cancelAnimationFrame(d1);
-                            }
-                            img.src = that.saveto[dd];
-                            img.onload = function(){
-                                that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-                                that.canvasVideoCtx.drawImage(img, 0, 0);    
-                            }
-                            dd ++;
-                        }
                     }
                 }
             })
