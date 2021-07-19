@@ -32,12 +32,15 @@ class Bind extends Tools{    //绑定事件类，继承主类
         })
     }
     videoButtonBindInit(){    //视频指令绑定
-        let that = this, nodeState = false;    //保存this作用域
+        let that = this, 
+            nodeState = false,
+            start, end;    //保存this作用域
         let openicon = document.getElementById("openicon"),
             pauseicon = document.getElementById("pauseicon"),
             progressobar = document.getElementById("progressrange");
         this.videoIndex = "video";
         this.saveto = [];
+        this.textVideoInput = false;
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
 
@@ -104,12 +107,40 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         }
                         break;
                     } 
+                    case "addsubtitle":{
+                        let value = document.getElementById("subtitle").value;
+                        if(value){
+                            if(this.innerText === "添加字幕"){
+                                this.innerText = "选择结束帧";
+                                document.getElementById("subtitlebegin").innerHTML = that.videoTimedisplay[0].innerText;
+                                start = that.videoOnload;
+                                that.CanvasNode.pictureLoad();
+                            }
+                            else if(this.innerText === "选择结束帧"){
+                                end = that.videoOnload;
+                                document.getElementById("subtitleend").innerHTML = that.videoTimedisplay[0].innerText;
+                                alert("添加成功"+start+" "+end);
+
+                                this.innerText = "添加字幕";
+                            }
+                        }
+                    }
                 }
             })
         });
+
+        let cc = document.getElementById("current");
+        document.getElementById("textSizeadd").addEventListener("click",(e)=>{
+            cc.innerText = parseInt(cc.innerText)+1;
+        })
+        document.getElementById("textSizereduce").addEventListener("click",(e)=>{
+            cc.innerText = parseInt(cc.innerText)-1;
+        })
+
         document.querySelector("#inputVido").addEventListener("change",(e)=>{
             that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
         });
+
         document.querySelector("#progressopen").addEventListener("click",(e)=>{
             if(that.videoIndex === "video"){
                 if(that.backstageVideo.readyState === 4){
@@ -457,6 +488,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
             shearplot = {};
         //controlnode作为标记当前canvas状态的标记，true标识为划线状态，false为修改状态。nodeState为鼠标是否按下的标记，true为按下，false为未按下
         //operation作为按下鼠标之后是否在操作区域的标记，true为在，false不在。clinet保存初始点位置
+        let addsubtitle = document.getElementById("addsubtitle");
 
         document.querySelector("#flipButton>button[id=tailoring]").addEventListener("click",(e)=>{    //裁剪，去除其他部分只留下选中部分
             if(that.toolCurrent === "shear"){    //当是剪切状态时

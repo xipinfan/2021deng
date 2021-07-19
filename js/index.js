@@ -140,15 +140,15 @@ class Tools{
         //this.canvasVideo.style.border = '2px'
         parentNode.appendChild(this.canvasVideo);
 
-        // //设定图片canvas
-        // this.canvasPicture = document.createElement('canvas');
-        // this.canvasPicture.width = 1230;
-        // this.canvasPicture.height = 665;
-        // this.canvasPicture.style.position = "absolute";
-        // this.canvasPicture.style.zIndex = "999";
-        // this.canvasPictureCtx = this.canvasPicture.getContext('2d');
-        // //this.canvasVideo.style.border = '2px'
-        // parentNode.appendChild(this.canvasPicture);
+        //设定字幕canvas
+        this.canvasSubtitle = document.createElement('canvas');
+        this.canvasSubtitle.width = 1230;
+        this.canvasSubtitle.height = 665;
+        this.canvasSubtitle.style.position = "absolute";
+        this.canvasSubtitle.style.zIndex = "-2";
+        this.canvasSubtitleCtx = this.canvasSubtitle.getContext('2d');
+
+        parentNode.appendChild(this.canvasSubtitle);
 
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');

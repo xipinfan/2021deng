@@ -151,4 +151,6 @@ class Canvas{
         this.videoOnload = parseInt(percent * this.saveto.length);
         this.CanvasNode.pictureLoad.call(this);
     }
+
+    
 }
