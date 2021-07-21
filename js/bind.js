@@ -46,6 +46,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         this.saveto = [];
         this.textVideoInput = false;
         this.canvasvideoData = {};
+        this.barrage = null;
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
         currentPX.style.fontSize = document.getElementById("current").innerText + "px";
@@ -135,7 +136,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                         }
                                         textQueue[index] += i;
                                     }
-
+                                    console.log(textQueue)
                                     for(let i = 0 ; i < textQueue.length ; i++){
                                         let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(textQueue[i]).width/2,
                                                    y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
@@ -234,24 +235,116 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     case "bulletchat":{
                         let value = document.getElementById("subtitle").value;
                         let Text = document.getElementById("current").innerText;
-                        switch(typebullet){
-                            case "top":{
-                                
-                                break;
-                            }
-                            case "roll":{
-                                
-                                break;
-                            }
-                            case "bottom":{
+                        let time = 2;    //设定弹幕存在时间
+                        let speed = 10;    //设定弹幕运动速度
+                        if(this.innerText === "添加弹幕"){
+                            that.barrage = null;
+                            that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                            that.canvasDemo.style.zIndex = 1001;
+                            that.canvasDemoCtx.save();
+                            that.canvasDemoCtx.font = Text + "px serif";    //字体大小
+                            switch(typebullet){
+                                case "top":{
+                                    let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
+                                        y:that.nodePlot.y - that.canvasvideoData.h / 2 * Math.random()};
 
-                                break;
+                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
+                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    break;
+                                }
+                                case "roll":{
+                                    
+                                    break;
+                                }
+                                case "bottom":{
+                                    let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
+                                        y:that.nodePlot.y + that.canvasvideoData.h / 4 + that.canvasvideoData.h / 4 * Math.random()};
+                                    
+                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
+                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    break;
+                                }
                             }
+                            that.canvasDemoCtx.restore();
+                            this.innerText = "确认添加"
+                        }
+                        else{
+                            new Promise((resolve,reject)=>{
+                                console.log(that.barrage);
+                                console.log(!that.barrage.value)
+                                if(that.barrage != null && !!that.barrage.value){
+                                    for( let i = that.barrage.time.begin ; i <= Math.min(that.barrage.time.end, that.saveto.length - 1) ; i++ ){
+                                        let img = new Image();
+                                        img.src = that.saveto[i];
+                                        img.onload = function(){
+                                            let node = that.contrast(this.width,this.height);
+                                            let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+                                            
+                                            that.canvasSubtitleCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);
+                                            that.canvasSubtitleCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
+                                            that.canvasSubtitleCtx.save();
+                                            that.barrage.ctx = that.canvasSubtitleCtx;
+                                            switch(that.barrage.typebullet){
+                                                case "bottom":
+                                                case "top":{
+                                                    that.barrage.drawFixed(i);
+                                                    break;
+                                                }
+                                            }    
+                                            that.saveto[i] = that.canvasSubtitle.toDataURL("image/png");
+                                            if(i === that.barrage.time.end || i === that.saveto.length - 1)resolve();
+                                        }
+                                    }
+                                }
+                                else{
+                                    resolve();
+                                }
+                            }).then((e)=>{
+                                that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height);
+                                that.CanvasNode.pictureLoad.call(that);
+                                this.innerText = "添加弹幕";
+                            })
                         }
                     }
                 }
             })
         });
+
+        function Barrage(ctx, value, typebullet, plot, time, speed, font) {
+            this.ctx = ctx;
+            this.color = "#000000";
+            this.value = value;
+            this.x = plot.x; //x坐标
+            this.y = plot.y;
+            this.speed = speed;
+            this.fontSize = font;
+            this.time = time;
+            this.typebullet = typebullet;
+        }
+        Barrage.prototype.draw = function() {
+            if(this.x < -200) {
+                return
+            } else {
+                this.ctx.save();
+                this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
+                this.ctx.fillStyle = this.color
+                this.x = this.x - this.speed
+                this.ctx.fillText(this.value, this.x, this.y)
+                this.ctx.restore();
+            }
+        }
+        Barrage.prototype.drawFixed = function(time1) {
+            if(this.time.begin <= time1 && this.time.end >= time1){
+                this.ctx.save();
+                this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
+                this.ctx.fillStyle = this.color
+                this.ctx.fillText(this.value, this.x, this.y)
+                this.ctx.restore();
+            }
+            else{
+                return;
+            }
+        }
 
         let cc = document.getElementById("current");
         document.getElementById("textSizeadd").addEventListener("click",(e)=>{
@@ -324,6 +417,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
             that.CanvasNode.pictureLoad.call(that);
             
         });
+
     }
     canvasButtonBindInit(){    //图像指令绑定
         let that = this;

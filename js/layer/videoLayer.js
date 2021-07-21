@@ -108,6 +108,17 @@ class Canvas{
                 that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
                 that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);     
             }
+
+            if(that.barrage != null){
+                switch(that.barrage.typebullet){
+                    case "top":{
+                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        that.barrage.drawFixed(that.videoOnload);
+                        break;
+                    }
+                }
+            }
+
             that.videoOnload = that.videoOnload + 1;
             if(that.videoOnload >= that.saveto.length ){
                 that.videoOnload --;
@@ -124,9 +135,20 @@ class Canvas{
             let node = that.contrast(this.width,this.height);
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
-            that.canvasvideoData = { w:this.width,h:this.height };
+            that.canvasvideoData = { w:node.a,h:node.b };
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
+
+            if(that.barrage != null){
+                switch(that.barrage.typebullet){
+                    case "top":{
+                        console.log(that.barrage);
+                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        that.barrage.drawFixed(that.videoOnload);
+                        break;
+                    }
+                }
+            }
 
         }
     }
