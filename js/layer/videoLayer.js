@@ -75,6 +75,20 @@ class Canvas{
         return `${m}:${s}`;
     }
 
+    timeChangeFrame(time){
+
+        let t = parseInt(time/60);
+        let m = parseInt(t/60).toString();
+        let s = (t - m*60).toString();
+        let f = time - s*60 - m*60*60;
+
+        if(m.length < 2)m = '0' + m;
+        if(s.length < 2)s = '0' + s;
+        if(f.length < 2)f = '0' + f;
+
+        return `${m}:${s}:${f}`;
+    }
+
     recordPlay(){
         let that = this;
         let img = new Image();
@@ -96,6 +110,7 @@ class Canvas{
             }
             that.videoOnload = that.videoOnload + 1;
             if(that.videoOnload >= that.saveto.length ){
+                that.videoOnload --;
                 document.querySelector("#progressopen").click();
             }
         }
@@ -109,6 +124,7 @@ class Canvas{
             let node = that.contrast(this.width,this.height);
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
+            that.canvasvideoData = { w:this.width,h:this.height };
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
 
@@ -149,6 +165,8 @@ class Canvas{
     progressbarCanvas(percent, e){
         this.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
         this.videoOnload = parseInt(percent * this.saveto.length);
+        if(this.videoOnload < 0 )this.videoOnload = 0;
+        if(this.videoOnload >= this.saveto.length) this.videoOnload = this.saveto.length - 1;
         this.CanvasNode.pictureLoad.call(this);
     }
 

@@ -34,15 +34,21 @@ class Bind extends Tools{    //绑定事件类，继承主类
     videoButtonBindInit(){    //视频指令绑定
         let that = this, 
             nodeState = false,
-            start, end;    //保存this作用域
+            start, end,
+            typebullet = "top";    //保存this作用域
         let openicon = document.getElementById("openicon"),
             pauseicon = document.getElementById("pauseicon"),
-            progressobar = document.getElementById("progressrange");
+            progressobar = document.getElementById("progressrange"),
+            addsubtitle = document.getElementById("addsubtitle"),
+            currentPX = document.getElementById("currentPX");
+        
         this.videoIndex = "video";
         this.saveto = [];
         this.textVideoInput = false;
+        this.canvasvideoData = {};
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
+        currentPX.style.fontSize = document.getElementById("current").innerText + "px";
 
         progressobar.addEventListener("mousedown",(e)=>{
             let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
@@ -108,20 +114,138 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         break;
                     } 
                     case "addsubtitle":{
-                        let value = document.getElementById("subtitle").value;
-                        if(value){
-                            if(this.innerText === "添加字幕"){
-                                this.innerText = "选择结束帧";
-                                document.getElementById("subtitlebegin").innerHTML = that.videoTimedisplay[0].innerText;
-                                start = that.videoOnload;
-                                that.CanvasNode.pictureLoad();
-                            }
-                            else if(this.innerText === "选择结束帧"){
-                                end = that.videoOnload;
-                                document.getElementById("subtitleend").innerHTML = that.videoTimedisplay[0].innerText;
-                                alert("添加成功"+start+" "+end);
+                        if(that.videoIndex === "canvas"){
+                            let value = document.getElementById("subtitle").value;
+                            let Text = document.getElementById("current").innerText;
+                            if(value){
+                                if(this.innerText === "添加字幕"){
+                                    that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height);
+                                    that.canvasDemo.style.zIndex = 1001;
+                                    that.canvasDemoCtx.save();
+                                    that.canvasDemoCtx.font = Text + "px serif";    //字体大小
 
-                                this.innerText = "添加字幕";
+                                    let index = 0;
+                                    let textQueue = [];
+                                    textQueue[index] = "";
+
+                                    for(let i of value){
+                                        if(that.canvasDemoCtx.measureText(textQueue[index] + i).width > that.canvasvideoData.w){
+                                            index++;
+                                            textQueue[index] = "";
+                                        }
+                                        textQueue[index] += i;
+                                    }
+
+                                    for(let i = 0 ; i < textQueue.length ; i++){
+                                        let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(textQueue[i]).width/2,
+                                                   y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
+                                        that.ImageLayerNode.textFill(that.canvasDemoCtx, textQueue[i], nP, i * Text);
+                                    }
+                                    that.canvasDemoCtx.restore();
+
+                                    this.innerText = "选择结束帧";
+                                    document.getElementById("subtitlebegin").innerHTML = that.CanvasNode.timeChangeFrame(that.videoOnload);
+                                    start = that.videoOnload;
+                                    that.CanvasNode.pictureLoad.call(that);
+                                }
+                                else if(this.innerText === "选择结束帧"){
+                                    end = that.videoOnload;
+                                    document.getElementById("subtitleend").innerHTML = that.CanvasNode.timeChangeFrame(that.videoOnload);
+
+                                    new Promise((resolve,reject)=>{
+                                        for(let i = start ; i <= end ; i ++ ){
+                                            let img = new Image();
+                                            img.src = that.saveto[i];
+                                            img.onload = function(){
+                                                let node = that.contrast(this.width,this.height);
+                                                let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
+                                                that.canvasSubtitleCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+                                                that.canvasSubtitleCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
+                                                that.canvasSubtitleCtx.save();
+                                                that.canvasSubtitleCtx.font = Text + "px serif";    //字体大小
+                                                
+                                                let index = 0;
+                                                let textQueue = [];
+                                                textQueue[index] = "";
+
+                                                for(let i of value){
+                                                    if(that.canvasSubtitleCtx.measureText(textQueue[index] + i).width > that.canvasvideoData.w){
+                                                        index++;
+                                                        textQueue[index] = "";
+                                                    }
+                                                    textQueue[index] += i;
+                                                }
+
+                                                for(let i = 0 ; i < textQueue.length ; i++){
+                                                    let nP = { x:that.nodePlot.x-that.canvasSubtitleCtx.measureText(textQueue[i]).width/2,
+                                                            y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
+                                                    that.ImageLayerNode.textFill(that.canvasSubtitleCtx, textQueue[i], nP, i * Text);
+                                                }
+
+                                                that.canvasSubtitleCtx.restore();
+                                                that.saveto[i] = that.canvasSubtitle.toDataURL("image/png");
+
+                                                if(i === end)resolve();
+                                            }
+                                        }
+                                    }).then((e)=>{
+                                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                                        this.innerText = "添加字幕";    
+                                        that.CanvasNode.pictureLoad.call(that);
+                                    })
+                                }
+                            }    
+                        }
+                        
+                        break;
+                    }
+                    case "againsubtitle":{
+                        let value = document.getElementById("subtitle").value;
+                        let Text = document.getElementById("current").innerText;
+                        if(document.getElementById("addsubtitle").innerText === "选择结束帧"){
+                            that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                            that.canvasDemo.style.zIndex = 1001;
+                            that.canvasDemoCtx.save();
+                            that.canvasDemoCtx.font = Text + "px serif";    //字体大小
+
+                            let index = 0;
+                            let textQueue = [];
+                            textQueue[index] = "";
+
+                            for(let i of value){
+                                if(that.canvasDemoCtx.measureText(textQueue[index] + i).width > that.canvasvideoData.w){
+                                    index++;
+                                    textQueue[index] = "";
+                                }
+                                textQueue[index] += i;
+                            }
+                            
+                            for(let i = 0 ; i < textQueue.length ; i++){
+                                let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(textQueue[i]).width/2,
+                                           y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
+                                that.ImageLayerNode.textFill(that.canvasDemoCtx, textQueue[i], nP, i * Text);
+                            }
+
+                            that.canvasDemoCtx.restore();    
+                        }
+                        break;
+                    }
+                    case "bulletchat":{
+                        let value = document.getElementById("subtitle").value;
+                        let Text = document.getElementById("current").innerText;
+                        switch(typebullet){
+                            case "top":{
+                                
+                                break;
+                            }
+                            case "roll":{
+                                
+                                break;
+                            }
+                            case "bottom":{
+
+                                break;
                             }
                         }
                     }
@@ -132,14 +256,22 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let cc = document.getElementById("current");
         document.getElementById("textSizeadd").addEventListener("click",(e)=>{
             cc.innerText = parseInt(cc.innerText)+1;
+            currentPX.style.fontSize = cc.innerText + "px";
         })
         document.getElementById("textSizereduce").addEventListener("click",(e)=>{
             cc.innerText = parseInt(cc.innerText)-1;
+            currentPX.style.fontSize = cc.innerText + "px";
         })
 
         document.querySelector("#inputVido").addEventListener("change",(e)=>{
             that.CanvasNode.openCanvasVideo.call(that);     //将绑定工具类的作用域
         });
+
+        let send111 = document.querySelector("#sendbulletchat");
+        send111.addEventListener("change",(e)=>{
+            let index = send111.selectedIndex;
+            typebullet = send111.options[index].value;
+        })
 
         document.querySelector("#progressopen").addEventListener("click",(e)=>{
             if(that.videoIndex === "video"){
@@ -172,7 +304,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     that.playbackStatus = false;
                 }
                 else{
-                    if(that.videoOnload === that.saveto.length ){
+                    if(that.videoOnload === that.saveto.length - 1 ){
                         that.videoOnload = 0;
                     }
                     that.CanvasNode.recordPlay.call(that); 
@@ -190,6 +322,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         document.getElementById("daochu").addEventListener("click",(e)=>{
             that.CanvasNode.canvasGIF.call(that);
             that.CanvasNode.pictureLoad.call(that);
+            
         });
     }
     canvasButtonBindInit(){    //图像指令绑定

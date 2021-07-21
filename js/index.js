@@ -144,11 +144,11 @@ class Tools{
         this.canvasSubtitle = document.createElement('canvas');
         this.canvasSubtitle.width = 1230;
         this.canvasSubtitle.height = 665;
-        this.canvasSubtitle.style.position = "absolute";
-        this.canvasSubtitle.style.zIndex = "-2";
+        //this.canvasSubtitle.style.position = "absolute";
+        //this.canvasSubtitle.style.zIndex = "-2";
         this.canvasSubtitleCtx = this.canvasSubtitle.getContext('2d');
 
-        parentNode.appendChild(this.canvasSubtitle);
+        //arentNode.appendChild(this.canvasSubtitle);
 
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');

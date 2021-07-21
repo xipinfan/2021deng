@@ -19,7 +19,7 @@
         }
     </script>
 </head>
-<body >
+<body oncontextmenu="return false" onselectstart="return false">
     <div id="Layout">
         <div id="canvasLayout"></div>
         <div id="progresswrap">
@@ -54,7 +54,7 @@
                     <input type="file" id="inputVido" accept="video/*">视频
                     <input type="file" id="inputPicture" accept="image/*">图片
                 </div>
-                <div id="videoButton">
+                <div id="videoButton" style="display: flex;flex-wrap:wrap;">
                     <button id="demo">wsgefae</button>
                     <button id="play1">开始播放</button>
                     <button id="pause">停止播放</button>
@@ -64,13 +64,20 @@
                     <button id="intercept">截取当前帧</button>
                     <br>
                     <button id="addsubtitle">添加字幕</button>
+                    <button id="bulletchat">添加弹幕</button>
+                    <button id="againsubtitle">重新导入</button>
                     <span id="subtitlebegin"></span>---<span id="subtitleend"></span>
                     <input id="subtitle" type="text" style="border: 1px solid black;">
-                    <div style="display: flex;">
-                        <input type="button" name="" value="+" id="textSizeadd">
+                    <input type="button" name="" value="+" id="textSizeadd">
+                        <div id="currentPX" style="display: flex;">
                             <div id="current">10</div>px
-                        <input type="button" name="" value="-" id="textSizereduce"> 
-                    </div>
+                        </div>
+                    <input type="button" name="" value="-" id="textSizereduce"> 
+                    <select name="" id="sendbulletchat" style="border: 1px solid black;">
+                        <option value="top">顶部</option>
+                        <option value="roll">滚动</option>
+                        <option value="bottom">底部</option>
+                    </select>
                 </div>
             </div>
             <div id="buttonLayout">
