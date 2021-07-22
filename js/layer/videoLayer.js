@@ -27,9 +27,9 @@ class Canvas{
 
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage( that.backstageVideo, 0, 0, videoWidth, videoHeight, x, y, node.a, node.b);
-            //录像canvas
-            that.canvasVideoTapeCtx.clearRect(0,0,that.canvasVideoTape.width,that.canvasVideoTape.height);
-            that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0,videoWidth,videoHeight);
+
+            that.canvasVideoTapeCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height); 
+            that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0, videoWidth, videoHeight);
 
             if(that.base){
                 document.getElementById("base64").style.backgroundColor = "red"; 
@@ -55,9 +55,11 @@ class Canvas{
                 new Blob(data, {type:'video/webm'})
             );
             this.backstageVideo.src = url;
+            console.log(url);
         }
         this.recorder.start();    //开启录制
     }
+
     stopRecordingVideo(){    //暂停录制
         if(this.recorder){
             this.recorder.stop();
@@ -106,14 +108,20 @@ class Canvas{
                 let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
                 that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-                that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);     
+                that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);                 
             }
 
             if(that.barrage != null){
                 switch(that.barrage.typebullet){
+                    case "bottom":
                     case "top":{
                         that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.drawFixed(that.videoOnload);
+                        break;
+                    }
+                    case "roll":{
+                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        that.barrage.draw(that.videoOnload);
                         break;
                     }
                 }
@@ -127,6 +135,38 @@ class Canvas{
         }
     }
 
+    Recording(){
+        let that = this;
+        let onload1 = 0;
+        let img = new Image();
+        this.CanvasNode.recordingVideo.call(this);
+
+        lz();
+        function lz(){
+            img.src = that.saveto[onload1];
+            img.onload = function(){
+                let node = that.contrast(this.width,this.height);
+                let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
+                let onloadAnimation = window.requestAnimationFrame(func);
+
+                that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+                if(that.canvasvideoData.h === this.height && that.canvasvideoData.w === this.width){
+                    that.canvasVideoCtx.drawImage(img);
+                }
+                else{
+                    that.canvasVideoCtx.drawImage(img, x, y, node.a, node.b);
+                }
+                onload1 = onload1 + 1;
+
+                if(onload1 >= that.saveto.length ){
+                    window.cancelAnimationFrame(onloadAnimation);
+                    that.CanvasNode.stopRecordingVideo.call(that);
+                }
+            }
+        }
+    }
+
     pictureLoad(){
         let that = this;
         let img = new Image();
@@ -135,16 +175,22 @@ class Canvas{
             let node = that.contrast(this.width,this.height);
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
-            that.canvasvideoData = { w:node.a,h:node.b };
+            if(!!!that.canvasvideoData)that.canvasvideoData = { w:node.a,h:node.b };
+            
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
 
             if(that.barrage != null){
                 switch(that.barrage.typebullet){
+                    case "bottom":
                     case "top":{
-                        console.log(that.barrage);
                         that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.drawFixed(that.videoOnload);
+                        break;
+                    }
+                    case "roll":{
+                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        that.barrage.draw(that.videoOnload);
                         break;
                     }
                 }

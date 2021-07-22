@@ -204,12 +204,13 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     case "againsubtitle":{
                         let value = document.getElementById("subtitle").value;
                         let Text = document.getElementById("current").innerText;
+                        let time = 2;    //设定弹幕存在时间
+                        let speed = parseInt(document.getElementById("speed").innerText);    //设定弹幕运动速度
+                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        that.canvasDemo.style.zIndex = 1001;
+                        that.canvasDemoCtx.save();
+                        that.canvasDemoCtx.font = Text + "px serif";    //字体大小
                         if(document.getElementById("addsubtitle").innerText === "选择结束帧"){
-                            that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
-                            that.canvasDemo.style.zIndex = 1001;
-                            that.canvasDemoCtx.save();
-                            that.canvasDemoCtx.font = Text + "px serif";    //字体大小
-
                             let index = 0;
                             let textQueue = [];
                             textQueue[index] = "";
@@ -230,13 +231,55 @@ class Bind extends Tools{    //绑定事件类，继承主类
 
                             that.canvasDemoCtx.restore();    
                         }
+                        else if(document.getElementById("bulletchat").innerText === "确认添加"){
+                            switch(typebullet){
+                                case "top":{
+                                    let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
+                                        y:that.nodePlot.y - that.canvasvideoData.h / 2 * Math.random()};
+
+                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
+                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    break;
+                                }
+                                case "roll":{
+                                    let nP = { x: that.nodePlot.x + that.canvasvideoData.w / 2,
+                                               y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
+                                    let Ti = that.videoOnload, x = nP.x;
+                                    let length = that.canvasDemoCtx.measureText(value).width;
+                                    console.log(that.nodePlot.x);
+                                    console.log(that.canvasvideoData);
+
+                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
+                                    while(Ti != that.saveto.length){
+                                        if(x + length < that.nodePlot.x - that.canvasvideoData.w / 2){
+                                            break;
+                                        }
+                                        x -= speed;
+                                        Ti ++;
+                                    }
+                                    
+                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:Ti}, speed, Text);
+                                    console.log(that.barrage);
+                                    break;
+                                }
+                                case "bottom":{
+                                    let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
+                                        y:that.nodePlot.y + that.canvasvideoData.h / 4 + that.canvasvideoData.h / 4 * Math.random()};
+                                    
+                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
+                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    break;
+                                }
+                            }
+                            that.canvasDemoCtx.restore();
+                        }
                         break;
                     }
                     case "bulletchat":{
                         let value = document.getElementById("subtitle").value;
                         let Text = document.getElementById("current").innerText;
                         let time = 2;    //设定弹幕存在时间
-                        let speed = 10;    //设定弹幕运动速度
+                        let speed = parseInt(document.getElementById("speed").innerText);    //设定弹幕运动速度
                         if(this.innerText === "添加弹幕"){
                             that.barrage = null;
                             that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
@@ -253,7 +296,24 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                     break;
                                 }
                                 case "roll":{
+                                    let nP = { x: that.nodePlot.x + that.canvasvideoData.w / 2,
+                                               y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
+                                    let Ti = that.videoOnload, x = nP.x;
+                                    let length = that.canvasDemoCtx.measureText(value).width;
+                                    console.log(that.nodePlot.x);
+                                    console.log(that.canvasvideoData);
+
+                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
+                                    while(Ti != that.saveto.length){
+                                        if(x + length < that.nodePlot.x - that.canvasvideoData.w / 2){
+                                            break;
+                                        }
+                                        x -= speed;
+                                        Ti ++;
+                                    }
                                     
+                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:Ti}, speed, Text);
+                                    console.log(that.barrage);
                                     break;
                                 }
                                 case "bottom":{
@@ -270,8 +330,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         }
                         else{
                             new Promise((resolve,reject)=>{
-                                console.log(that.barrage);
-                                console.log(!that.barrage.value)
                                 if(that.barrage != null && !!that.barrage.value){
                                     for( let i = that.barrage.time.begin ; i <= Math.min(that.barrage.time.end, that.saveto.length - 1) ; i++ ){
                                         let img = new Image();
@@ -290,6 +348,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                                     that.barrage.drawFixed(i);
                                                     break;
                                                 }
+                                                case "roll":{
+                                                    that.barrage.draw(i);
+                                                }
                                             }    
                                             that.saveto[i] = that.canvasSubtitle.toDataURL("image/png");
                                             if(i === that.barrage.time.end || i === that.saveto.length - 1)resolve();
@@ -304,6 +365,14 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 that.CanvasNode.pictureLoad.call(that);
                                 this.innerText = "添加弹幕";
                             })
+                        }
+                        break;
+                    }
+                    case "exportfile":{
+                        if(document.getElementById("bulletchat").innerText === "添加弹幕" ){
+                            if(document.getElementById("addsubtitle").innerText === "添加字幕"){
+                                
+                            }
                         }
                     }
                 }
@@ -321,30 +390,39 @@ class Bind extends Tools{    //绑定事件类，继承主类
             this.time = time;
             this.typebullet = typebullet;
         }
-        Barrage.prototype.draw = function() {
-            if(this.x < -200) {
-                return
-            } else {
+        Barrage.prototype.draw = function(time1) {
+            if(this.time.begin <= time1 && this.time.end >= time1) {
+                let d1 = time1 - this.time.begin;
                 this.ctx.save();
                 this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
-                this.ctx.fillStyle = this.color
-                this.x = this.x - this.speed
-                this.ctx.fillText(this.value, this.x, this.y)
+                this.ctx.fillStyle = this.color;
+                this.ctx.fillText(this.value, this.x - this.speed * d1, this.y);
                 this.ctx.restore();
+                
+            } else {
+                return
             }
         }
         Barrage.prototype.drawFixed = function(time1) {
             if(this.time.begin <= time1 && this.time.end >= time1){
                 this.ctx.save();
                 this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
-                this.ctx.fillStyle = this.color
-                this.ctx.fillText(this.value, this.x, this.y)
+                this.ctx.fillStyle = this.color;
+                this.ctx.fillText(this.value, this.x, this.y);
                 this.ctx.restore();
             }
             else{
                 return;
             }
         }
+
+        let speed = document.getElementById("speed");
+        document.getElementById("speedSizeadd").addEventListener("click",(e)=>{
+            speed.innerHTML = parseInt(speed.innerHTML) + 1;
+        })
+        document.getElementById("speedSizereduce").addEventListener("click",(e)=>{
+            speed.innerHTML = parseInt(speed.innerHTML) - 1;
+        })
 
         let cc = document.getElementById("current");
         document.getElementById("textSizeadd").addEventListener("click",(e)=>{
@@ -413,9 +491,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
             }
         });
         document.getElementById("daochu").addEventListener("click",(e)=>{
+            that.canvasvideoData = null;
             that.CanvasNode.canvasGIF.call(that);
             that.CanvasNode.pictureLoad.call(that);
-            
         });
 
     }
