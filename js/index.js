@@ -142,10 +142,10 @@ class Tools{
 
         //设定字幕canvas
         this.canvasSubtitle = document.createElement('canvas');
-        this.canvasSubtitle.width = 1230;
-        this.canvasSubtitle.height = 665;
+        //this.canvasSubtitle.width = 1230;
+        //this.canvasSubtitle.height = 665;
         //this.canvasSubtitle.style.position = "absolute";
-        //this.canvasSubtitle.style.zIndex = "-2";
+        this.canvasSubtitle.style.zIndex = "1001";
         this.canvasSubtitleCtx = this.canvasSubtitle.getContext('2d');
 
         //arentNode.appendChild(this.canvasSubtitle);
@@ -227,7 +227,7 @@ class Tools{
         let that = this;
         this.backstageVideo = document.createElement('Video');
         //添加视频，正式使用不需要添加
-        //document.querySelector('#inputLayout').appendChild(this.backstageVideo);
+        document.querySelector('#inputLayout').appendChild(this.backstageVideo);
         this.initialImg = new Image();
         this.initialImg.src = './fonts/hkd.png';
         this.initialImg.onload = function(){

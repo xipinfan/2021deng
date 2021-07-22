@@ -40,31 +40,6 @@ class Canvas{
             }
         }
     }
-    //视频录制函数
-    recordingVideo(){
-        let stream = this.canvasVideoTape.captureStream();    //返回一个实时视频捕获画布
-        this.recorder = new MediaRecorder(stream, {mimeType: 'video/webm'});    //设置一个队stream就行录制的对象
-        let data = [];
-        this.recorder.ondataavailable = function(event){
-            if(event.data && event.data.size){    //将捕获到的媒体数据传入data里
-                data.push(event.data);
-            }
-        }
-        this.recorder.onstop = () =>{    //当结束录制时导出视频
-            let url = URL.createObjectURL(
-                new Blob(data, {type:'video/webm'})
-            );
-            this.backstageVideo.src = url;
-            console.log(url);
-        }
-        this.recorder.start();    //开启录制
-    }
-
-    stopRecordingVideo(){    //暂停录制
-        if(this.recorder){
-            this.recorder.stop();
-        }
-    }
 
     timeChange(time){
 
@@ -104,11 +79,11 @@ class Canvas{
 
             img.src = that.saveto[that.videoOnload];
             img.onload = function(){
-                let node = that.contrast(this.width,this.height);
+                let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
                 let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
                 that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-                that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);                 
+                that.canvasVideoCtx.drawImage(img, 0, 0, that.canvasvideoData.w, that.canvasvideoData.h, x, y, node.a, node.b);                 
             }
 
             if(that.barrage != null){
@@ -145,25 +120,52 @@ class Canvas{
         function lz(){
             img.src = that.saveto[onload1];
             img.onload = function(){
-                let node = that.contrast(this.width,this.height);
+                let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
                 let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
-                let onloadAnimation = window.requestAnimationFrame(func);
+                let onloadAnimation = window.requestAnimationFrame(lz);
 
-                that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+                that.canvasVideoTapeCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
                 if(that.canvasvideoData.h === this.height && that.canvasvideoData.w === this.width){
-                    that.canvasVideoCtx.drawImage(img);
+                    that.canvasVideoTapeCtx.drawImage(img, 0, 0);
                 }
                 else{
-                    that.canvasVideoCtx.drawImage(img, x, y, node.a, node.b);
+                    that.canvasVideoTapeCtx.drawImage(img, x, y, node.a, node.b);
                 }
                 onload1 = onload1 + 1;
 
                 if(onload1 >= that.saveto.length ){
                     window.cancelAnimationFrame(onloadAnimation);
                     that.CanvasNode.stopRecordingVideo.call(that);
+                    alert("导出成功!!!!")
                 }
             }
+        }
+    }
+
+    //视频录制函数
+    recordingVideo(){
+        let stream = this.canvasVideoTape.captureStream();    //返回一个实时视频捕获画布
+        this.recorder = new MediaRecorder(stream, {mimeType: 'video/webm'});    //设置一个队stream就行录制的对象
+        let data = [];
+        this.recorder.ondataavailable = function(event){
+            if(event.data && event.data.size){    //将捕获到的媒体数据传入data里
+                data.push(event.data);
+            }
+        }
+        this.recorder.onstop = () =>{    //当结束录制时导出视频
+            let url = URL.createObjectURL(
+                new Blob(data, {type:'video/webm'})
+            );
+            this.backstageVideo.src = url;
+            console.log(url);
+        }
+        this.recorder.start();    //开启录制
+    }
+
+    stopRecordingVideo(){    //暂停录制
+        if(this.recorder){
+            this.recorder.stop();
         }
     }
 
@@ -174,9 +176,13 @@ class Canvas{
         img.onload = function(){
             let node = that.contrast(this.width,this.height);
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+            that.videoTimedisplay[0].innerHTML = that.CanvasNode.timeChange((that.videoOnload + 1)/60);    //将当前视频时间显示在屏幕上
 
-            if(!!!that.canvasvideoData)that.canvasvideoData = { w:node.a,h:node.b };
-            
+            if(!!!that.canvasvideoData){
+                that.canvasSubtitle.width = this.width;
+                that.canvasSubtitle.height = this.height;
+                that.canvasvideoData = { w:node.a,h:node.b };
+            }
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
 

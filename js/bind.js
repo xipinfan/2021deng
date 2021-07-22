@@ -158,11 +158,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                             let img = new Image();
                                             img.src = that.saveto[i];
                                             img.onload = function(){
-                                                let node = that.contrast(this.width,this.height);
-                                                let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
-                                                that.canvasSubtitleCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
-                                                that.canvasSubtitleCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
+                                                that.canvasSubtitleCtx.clearRect(0, 0,this.width,this.height);
+                                                that.canvasSubtitleCtx.drawImage(img, 0, 0);    
                                                 that.canvasSubtitleCtx.save();
                                                 that.canvasSubtitleCtx.font = Text + "px serif";    //字体大小
                                                 
@@ -179,8 +177,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                                 }
 
                                                 for(let i = 0 ; i < textQueue.length ; i++){
-                                                    let nP = { x:that.nodePlot.x-that.canvasSubtitleCtx.measureText(textQueue[i]).width/2,
-                                                            y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
+                                                    let nP = { x:that.nodePlot.x-that.canvasSubtitleCtx.measureText(textQueue[i]).width/2 - that.nodePlot.x + that.canvasvideoData.w/2,
+                                                            y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text - that.nodePlot.y + that.canvasvideoData.h/2 } ;
                                                     that.ImageLayerNode.textFill(that.canvasSubtitleCtx, textQueue[i], nP, i * Text);
                                                 }
 
@@ -246,8 +244,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                                y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
                                     let Ti = that.videoOnload, x = nP.x;
                                     let length = that.canvasDemoCtx.measureText(value).width;
-                                    console.log(that.nodePlot.x);
-                                    console.log(that.canvasvideoData);
 
                                     that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
                                     while(Ti != that.saveto.length){
@@ -290,7 +286,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 case "top":{
                                     let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
                                         y:that.nodePlot.y - that.canvasvideoData.h / 2 * Math.random()};
-
+                                    
                                     that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
                                     that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
                                     break;
@@ -300,8 +296,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                                y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
                                     let Ti = that.videoOnload, x = nP.x;
                                     let length = that.canvasDemoCtx.measureText(value).width;
-                                    console.log(that.nodePlot.x);
-                                    console.log(that.canvasvideoData);
 
                                     that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
                                     while(Ti != that.saveto.length){
@@ -331,17 +325,17 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         else{
                             new Promise((resolve,reject)=>{
                                 if(that.barrage != null && !!that.barrage.value){
+                                    that.barrage.ctx = that.canvasSubtitleCtx;
+                                    that.barrage.x = that.barrage.x - that.nodePlot.x + that.canvasvideoData.w/2;
+                                    that.barrage.y = that.barrage.y - that.nodePlot.y + that.canvasvideoData.h/2;
+
                                     for( let i = that.barrage.time.begin ; i <= Math.min(that.barrage.time.end, that.saveto.length - 1) ; i++ ){
                                         let img = new Image();
                                         img.src = that.saveto[i];
                                         img.onload = function(){
-                                            let node = that.contrast(this.width,this.height);
-                                            let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
-                                            
-                                            that.canvasSubtitleCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);
-                                            that.canvasSubtitleCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
+                                            that.canvasSubtitleCtx.clearRect(0, 0,this.width,this.height);
+                                            that.canvasSubtitleCtx.drawImage(img, 0, 0);    
                                             that.canvasSubtitleCtx.save();
-                                            that.barrage.ctx = that.canvasSubtitleCtx;
                                             switch(that.barrage.typebullet){
                                                 case "bottom":
                                                 case "top":{
@@ -371,7 +365,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     case "exportfile":{
                         if(document.getElementById("bulletchat").innerText === "添加弹幕" ){
                             if(document.getElementById("addsubtitle").innerText === "添加字幕"){
-                                
+                                that.CanvasNode.Recording.call(that);
                             }
                         }
                     }
