@@ -39,17 +39,19 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let openicon = document.getElementById("openicon"),
             pauseicon = document.getElementById("pauseicon"),
             progressobar = document.getElementById("progressrange"),
-            addsubtitle = document.getElementById("addsubtitle"),
             currentPX = document.getElementById("currentPX");
+        let Barrage = this.CanvasNode.barr();
         
         this.videoIndex = "video";
         this.saveto = [];
         this.textVideoInput = false;
         this.canvasvideoData = {};
         this.barrage = null;
+        this.canvasvideoNode = {};
         pauseicon.style.display = "none";
         openicon.style.display = "inline";
         currentPX.style.fontSize = document.getElementById("current").innerText + "px";
+        
 
         progressobar.addEventListener("mousedown",(e)=>{
             let percent = (e.pageX - progressobar.offsetLeft) / that.progressobarWidth;
@@ -120,29 +122,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             let Text = document.getElementById("current").innerText;
                             if(value){
                                 if(this.innerText === "添加字幕"){
-                                    that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height);
+
                                     that.canvasDemo.style.zIndex = 1001;
-                                    that.canvasDemoCtx.save();
-                                    that.canvasDemoCtx.font = Text + "px serif";    //字体大小
-
-                                    let index = 0;
-                                    let textQueue = [];
-                                    textQueue[index] = "";
-
-                                    for(let i of value){
-                                        if(that.canvasDemoCtx.measureText(textQueue[index] + i).width > that.canvasvideoData.w){
-                                            index++;
-                                            textQueue[index] = "";
-                                        }
-                                        textQueue[index] += i;
-                                    }
-                                    console.log(textQueue)
-                                    for(let i = 0 ; i < textQueue.length ; i++){
-                                        let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(textQueue[i]).width/2,
-                                                   y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
-                                        that.ImageLayerNode.textFill(that.canvasDemoCtx, textQueue[i], nP, i * Text);
-                                    }
-                                    that.canvasDemoCtx.restore();
+                                    that.CanvasNode.addSubtitles.call(that, that.canvasDemoCtx, value, Text, 0);
 
                                     this.innerText = "选择结束帧";
                                     document.getElementById("subtitlebegin").innerHTML = that.CanvasNode.timeChangeFrame(that.videoOnload);
@@ -152,46 +134,20 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 else if(this.innerText === "选择结束帧"){
                                     end = that.videoOnload;
                                     document.getElementById("subtitleend").innerHTML = that.CanvasNode.timeChangeFrame(that.videoOnload);
-
+                                    that.canvasDemo.style.zIndex = -2;
                                     new Promise((resolve,reject)=>{
                                         for(let i = start ; i <= end ; i ++ ){
                                             let img = new Image();
                                             img.src = that.saveto[i];
-                                            img.onload = function(){
-
-                                                that.canvasSubtitleCtx.clearRect(0, 0,this.width,this.height);
-                                                that.canvasSubtitleCtx.drawImage(img, 0, 0);    
-                                                that.canvasSubtitleCtx.save();
-                                                that.canvasSubtitleCtx.font = Text + "px serif";    //字体大小
-                                                
-                                                let index = 0;
-                                                let textQueue = [];
-                                                textQueue[index] = "";
-
-                                                for(let i of value){
-                                                    if(that.canvasSubtitleCtx.measureText(textQueue[index] + i).width > that.canvasvideoData.w){
-                                                        index++;
-                                                        textQueue[index] = "";
-                                                    }
-                                                    textQueue[index] += i;
-                                                }
-
-                                                for(let i = 0 ; i < textQueue.length ; i++){
-                                                    let nP = { x:that.nodePlot.x-that.canvasSubtitleCtx.measureText(textQueue[i]).width/2 - that.nodePlot.x + that.canvasvideoData.w/2,
-                                                            y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text - that.nodePlot.y + that.canvasvideoData.h/2 } ;
-                                                    that.ImageLayerNode.textFill(that.canvasSubtitleCtx, textQueue[i], nP, i * Text);
-                                                }
-
-                                                that.canvasSubtitleCtx.restore();
-                                                that.saveto[i] = that.canvasSubtitle.toDataURL("image/png");
-
+                                            img.onload = async function(){
+                                                await that.CanvasNode.endFrame.call(that, img, value, Text, i);
                                                 if(i === end)resolve();
                                             }
                                         }
                                     }).then((e)=>{
+                                        that.CanvasNode.pictureLoad.call(that);
                                         that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                                         this.innerText = "添加字幕";    
-                                        that.CanvasNode.pictureLoad.call(that);
                                     })
                                 }
                             }    
@@ -209,25 +165,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         that.canvasDemoCtx.save();
                         that.canvasDemoCtx.font = Text + "px serif";    //字体大小
                         if(document.getElementById("addsubtitle").innerText === "选择结束帧"){
-                            let index = 0;
-                            let textQueue = [];
-                            textQueue[index] = "";
 
-                            for(let i of value){
-                                if(that.canvasDemoCtx.measureText(textQueue[index] + i).width > that.canvasvideoData.w){
-                                    index++;
-                                    textQueue[index] = "";
-                                }
-                                textQueue[index] += i;
-                            }
-                            
-                            for(let i = 0 ; i < textQueue.length ; i++){
-                                let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(textQueue[i]).width/2,
-                                           y:that.nodePlot.y+that.canvasvideoData.h/2- (textQueue.length-1) * Text };
-                                that.ImageLayerNode.textFill(that.canvasDemoCtx, textQueue[i], nP, i * Text);
-                            }
-
-                            that.canvasDemoCtx.restore();    
+                            that.CanvasNode.addSubtitles.call(that, that.canvasDemoCtx, value, Text, 0);
+                            that.canvasDemoCtx.restore();   
                         }
                         else if(document.getElementById("bulletchat").innerText === "确认添加"){
                             switch(typebullet){
@@ -242,20 +182,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 case "roll":{
                                     let nP = { x: that.nodePlot.x + that.canvasvideoData.w / 2,
                                                y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
-                                    let Ti = that.videoOnload, x = nP.x;
-                                    let length = that.canvasDemoCtx.measureText(value).width;
-
-                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
-                                    while(Ti != that.saveto.length){
-                                        if(x + length < that.nodePlot.x - that.canvasvideoData.w / 2){
-                                            break;
-                                        }
-                                        x -= speed;
-                                        Ti ++;
-                                    }
                                     
+                                    let Ti = that.CanvasNode.speedCalculation.call(that, nP, that.canvasDemoCtx, value, speed);
                                     that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:Ti}, speed, Text);
-                                    console.log(that.barrage);
                                     break;
                                 }
                                 case "bottom":{
@@ -276,6 +205,9 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         let Text = document.getElementById("current").innerText;
                         let time = 2;    //设定弹幕存在时间
                         let speed = parseInt(document.getElementById("speed").innerText);    //设定弹幕运动速度
+                        console.log(that.canvasvideoData);
+
+                        let random = Math.random();
                         if(this.innerText === "添加弹幕"){
                             that.barrage = null;
                             that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
@@ -285,26 +217,19 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             switch(typebullet){
                                 case "top":{
                                     let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
-                                        y:that.nodePlot.y - that.canvasvideoData.h / 2 * Math.random()};
+                                        y:that.nodePlot.y - that.canvasvideoNode.h / 2 * random};
                                     
                                     that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
                                     that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
                                     break;
                                 }
                                 case "roll":{
-                                    let nP = { x: that.nodePlot.x + that.canvasvideoData.w / 2,
-                                               y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
-                                    let Ti = that.videoOnload, x = nP.x;
-                                    let length = that.canvasDemoCtx.measureText(value).width;
-
-                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
-                                    while(Ti != that.saveto.length){
-                                        if(x + length < that.nodePlot.x - that.canvasvideoData.w / 2){
-                                            break;
-                                        }
-                                        x -= speed;
-                                        Ti ++;
-                                    }
+                                    let nP = { x: that.nodePlot.x + that.canvasvideoNode.w / 2,
+                                               y: that.nodePlot.y - that.canvasvideoNode.h / 2 + that.canvasvideoNode.h * random };
+                                    console.log(that.nodePlot.y - that.canvasvideoNode.h / 2);
+                                    console.log(nP);
+                                    console.log(that.canvasvideoNode);
+                                    let Ti = that.CanvasNode.speedCalculation.call(that, nP, that.canvasDemoCtx, value, speed);
                                     
                                     that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:Ti}, speed, Text);
                                     console.log(that.barrage);
@@ -312,7 +237,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 }
                                 case "bottom":{
                                     let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
-                                        y:that.nodePlot.y + that.canvasvideoData.h / 4 + that.canvasvideoData.h / 4 * Math.random()};
+                                        y:that.nodePlot.y + that.canvasvideoNode.h / 4 + that.canvasvideoNode.h / 4 * random};
                                     
                                     that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
                                     that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
@@ -323,30 +248,19 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             this.innerText = "确认添加"
                         }
                         else{
+                            let dd = that.canvasvideoData;
                             new Promise((resolve,reject)=>{
                                 if(that.barrage != null && !!that.barrage.value){
-                                    that.barrage.ctx = that.canvasSubtitleCtx;
-                                    that.barrage.x = that.barrage.x - that.nodePlot.x + that.canvasvideoData.w/2;
-                                    that.barrage.y = that.barrage.y - that.nodePlot.y + that.canvasvideoData.h/2;
+                                    let xx = that.nodePlot.x - that.canvasvideoNode.w/2,yy = that.nodePlot.y - that.canvasvideoNode.h/2;
+                                    console.log({xx,yy});
+                                    that.barrage.changebulletchat(that.canvasSubtitleCtx, xx, yy);
+                                    console.log(that.barrage);//等比例缩小了。。。。。。。。
 
                                     for( let i = that.barrage.time.begin ; i <= Math.min(that.barrage.time.end, that.saveto.length - 1) ; i++ ){
                                         let img = new Image();
                                         img.src = that.saveto[i];
                                         img.onload = function(){
-                                            that.canvasSubtitleCtx.clearRect(0, 0,this.width,this.height);
-                                            that.canvasSubtitleCtx.drawImage(img, 0, 0);    
-                                            that.canvasSubtitleCtx.save();
-                                            switch(that.barrage.typebullet){
-                                                case "bottom":
-                                                case "top":{
-                                                    that.barrage.drawFixed(i);
-                                                    break;
-                                                }
-                                                case "roll":{
-                                                    that.barrage.draw(i);
-                                                }
-                                            }    
-                                            that.saveto[i] = that.canvasSubtitle.toDataURL("image/png");
+                                            that.CanvasNode.bulletchatImageC.call(that, this.width, this.height, img, i)
                                             if(i === that.barrage.time.end || i === that.saveto.length - 1)resolve();
                                         }
                                     }
@@ -355,7 +269,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                     resolve();
                                 }
                             }).then((e)=>{
-                                that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height);
+                                //that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height);
                                 that.CanvasNode.pictureLoad.call(that);
                                 this.innerText = "添加弹幕";
                             })
@@ -372,43 +286,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 }
             })
         });
-
-        function Barrage(ctx, value, typebullet, plot, time, speed, font) {
-            this.ctx = ctx;
-            this.color = "#000000";
-            this.value = value;
-            this.x = plot.x; //x坐标
-            this.y = plot.y;
-            this.speed = speed;
-            this.fontSize = font;
-            this.time = time;
-            this.typebullet = typebullet;
-        }
-        Barrage.prototype.draw = function(time1) {
-            if(this.time.begin <= time1 && this.time.end >= time1) {
-                let d1 = time1 - this.time.begin;
-                this.ctx.save();
-                this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
-                this.ctx.fillStyle = this.color;
-                this.ctx.fillText(this.value, this.x - this.speed * d1, this.y);
-                this.ctx.restore();
-                
-            } else {
-                return
-            }
-        }
-        Barrage.prototype.drawFixed = function(time1) {
-            if(this.time.begin <= time1 && this.time.end >= time1){
-                this.ctx.save();
-                this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
-                this.ctx.fillStyle = this.color;
-                this.ctx.fillText(this.value, this.x, this.y);
-                this.ctx.restore();
-            }
-            else{
-                return;
-            }
-        }
 
         let speed = document.getElementById("speed");
         document.getElementById("speedSizeadd").addEventListener("click",(e)=>{

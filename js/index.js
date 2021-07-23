@@ -148,7 +148,7 @@ class Tools{
         this.canvasSubtitle.style.zIndex = "1001";
         this.canvasSubtitleCtx = this.canvasSubtitle.getContext('2d');
 
-        //arentNode.appendChild(this.canvasSubtitle);
+        //parentNode.appendChild(this.canvasSubtitle);
 
         // //设定背景图canvas
         this.canvasBackground = document.createElement('canvas');
@@ -227,7 +227,7 @@ class Tools{
         let that = this;
         this.backstageVideo = document.createElement('Video');
         //添加视频，正式使用不需要添加
-        document.querySelector('#inputLayout').appendChild(this.backstageVideo);
+        //document.querySelector('#inputLayout').appendChild(this.backstageVideo);
         this.initialImg = new Image();
         this.initialImg.src = './fonts/hkd.png';
         this.initialImg.onload = function(){

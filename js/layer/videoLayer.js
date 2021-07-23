@@ -179,9 +179,12 @@ class Canvas{
             that.videoTimedisplay[0].innerHTML = that.CanvasNode.timeChange((that.videoOnload + 1)/60);    //将当前视频时间显示在屏幕上
 
             if(!!!that.canvasvideoData){
+                
                 that.canvasSubtitle.width = this.width;
                 that.canvasSubtitle.height = this.height;
-                that.canvasvideoData = { w:node.a,h:node.b };
+                that.canvasvideoData = { w:this.width,h:this.height };
+                that.canvasvideoNode = { w:node.a, h:node.b };
+                console.log(that.canvasvideoData);
             }
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
@@ -195,7 +198,7 @@ class Canvas{
                         break;
                     }
                     case "roll":{
-                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        //that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.draw(that.videoOnload);
                         break;
                     }
@@ -244,5 +247,133 @@ class Canvas{
         this.CanvasNode.pictureLoad.call(this);
     }
 
-    
+    textQueueObtain(canvas, w, value){
+        let index = 0;
+        let textQueue = [];
+        textQueue[index] = "";
+
+        for(let i of value){
+            if(canvas.measureText(textQueue[index] + i).width > w){
+                index++;
+                textQueue[index] = "";
+            }
+            textQueue[index] += i;
+        }
+        return textQueue;
+    }
+
+    addSubtitles(canvas, value, Text){
+
+        canvas.save();
+        canvas.font = Text + "px serif";    //字体大小
+
+        let textQueue = this.CanvasNode.textQueueObtain(canvas, this.canvasvideoData.w, value);
+
+        for(let i = 0 ; i < textQueue.length ; i++){
+            let nP = { x:this.nodePlot.x-canvas.measureText(textQueue[i]).width/2,
+                        y:this.nodePlot.y+this.canvasvideoNode.h/2- (textQueue.length-1) * Text };
+            this.ImageLayerNode.textFill(canvas, textQueue[i], nP, i * Text);
+        }
+
+        canvas.restore();
+    }
+
+    endFrame(img, value, Text, index){
+
+        this.canvasSubtitleCtx.clearRect(0, 0,this.canvasvideoData.w,this.canvasvideoData.h);
+        this.canvasSubtitleCtx.drawImage(img, 0, 0);    
+        this.canvasSubtitleCtx.save();
+        this.canvasSubtitleCtx.font = Text + "px serif";    //字体大小
+        
+        let textQueue = this.CanvasNode.textQueueObtain(this.canvasSubtitleCtx, this.canvasvideoData.w, value);
+
+        for(let i = 0 ; i < textQueue.length ; i++){
+            let nP = { x:this.canvasvideoData.w/2 - this.canvasSubtitleCtx.measureText(textQueue[i]).width/2 ,
+                    y:this.canvasvideoData.h- (textQueue.length-1) * Text } ;
+                this.ImageLayerNode.textFill(this.canvasSubtitleCtx, textQueue[i], nP, i * Text);
+        }
+
+        this.canvasSubtitleCtx.restore();
+        this.saveto[index] = this.canvasSubtitle.toDataURL("image/png");
+    }
+
+    speedCalculation(nP, canvas, value, speed){
+
+        let Ti = this.videoOnload, x = nP.x;
+        let length = canvas.measureText(value).width;
+
+        this.ImageLayerNode.textFill(canvas, value, nP, 0);
+        while(Ti != this.saveto.length){
+            if(x + length < this.nodePlot.x - this.canvasvideoData.w / 2){
+                break;
+            }
+            x -= speed;
+            Ti ++;
+        }
+
+        return Ti;
+    }
+
+    barr(){
+        function Barrage(ctx, value, typebullet, plot, time, speed, font) {
+            this.ctx = ctx;
+            this.color = "#000000";
+            this.value = value;
+            this.x = plot.x; //x坐标
+            this.y = plot.y;
+            this.speed = speed;
+            this.fontSize = font;
+            this.time = time;
+            this.typebullet = typebullet;
+        }
+        Barrage.prototype.draw = function(time1) {
+            
+            if(this.time.begin <= time1 && this.time.end >= time1) {
+                let d1 = time1 - this.time.begin;
+                this.ctx.save();
+                this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
+                this.ctx.fillStyle = this.color;
+                this.ctx.fillText(this.value, this.x - this.speed * d1, this.y);
+                this.ctx.restore();
+                
+            } else {
+                return;
+            }
+        }
+        Barrage.prototype.drawFixed = function(time1) {
+            if(this.time.begin <= time1 && this.time.end >= time1){
+                this.ctx.save();
+                this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
+                this.ctx.fillStyle = this.color;
+                this.ctx.fillText(this.value, this.x, this.y);
+                this.ctx.restore();
+            }
+            else{
+                return;
+            }
+        }
+        Barrage.prototype.changebulletchat = function(ctx, x1, y1){
+            this.ctx = ctx;
+            this.x = this.x - x1;
+            this.y = this.y - y1;
+        }
+        return Barrage;
+    }
+
+    bulletchatImageC(width, height, img, i){
+        this.canvasSubtitleCtx.clearRect(0, 0,width,height);
+        this.canvasSubtitleCtx.drawImage(img, 0, 0);    
+        this.canvasSubtitleCtx.save();
+        switch(this.barrage.typebullet){
+            case "bottom":
+            case "top":{
+                this.barrage.drawFixed(i);
+                break;
+            }
+            case "roll":{
+                this.barrage.draw(i);
+            }
+        }    
+        this.saveto[i] = this.canvasSubtitle.toDataURL("image/png");
+    }
 }
