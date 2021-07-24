@@ -29,9 +29,9 @@ class Canvas{
             that.canvasVideoCtx.drawImage( that.backstageVideo, 0, 0, videoWidth, videoHeight, x, y, node.a, node.b);
 
             that.canvasVideoTapeCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height); 
-            that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0, videoWidth, videoHeight);
+            that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0, videoWidth, videoHeight);    //设定录制canvas
 
-            if(that.base){
+            if(that.base){    //导出开始录制
                 document.getElementById("base64").style.backgroundColor = "red"; 
                 that.saveto.push(that.canvasVideoTape.toDataURL("image/png"));
             }
@@ -41,7 +41,7 @@ class Canvas{
         }
     }
 
-    timeChange(time){
+    timeChange(time){    //修改时间
 
         let t = parseInt(time);
         let m = parseInt(t/60).toString();
@@ -52,7 +52,7 @@ class Canvas{
         return `${m}:${s}`;
     }
 
-    timeChangeFrame(time){
+    timeChangeFrame(time){    //修改时间
 
         let t = parseInt(time/60);
         let m = parseInt(t/60).toString();
@@ -66,7 +66,7 @@ class Canvas{
         return `${m}:${s}:${f}`;
     }
 
-    recordPlay(){
+    recordPlay(){    //开始播放图片数组
         let that = this;
         let img = new Image();
         func();
@@ -77,7 +77,7 @@ class Canvas{
             that.progressoafter.style.width = ((that.videoOnload + 1)/that.saveto.length) * that.progressobarWidth + "px";
             that.videoTimedisplay[0].innerHTML = that.CanvasNode.timeChange((that.videoOnload + 1)/60);    //将当前视频时间显示在屏幕上
 
-            img.src = that.saveto[that.videoOnload];
+            img.src = that.saveto[that.videoOnload];    //导入
             img.onload = function(){
                 let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
                 let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
@@ -103,21 +103,21 @@ class Canvas{
             }
 
             that.videoOnload = that.videoOnload + 1;
-            if(that.videoOnload >= that.saveto.length ){
+            if(that.videoOnload >= that.saveto.length ){    //当到达结尾时结束
                 that.videoOnload --;
-                document.querySelector("#progressopen").click();
+                document.querySelector("#progressopen").click();    //修改播放图标样式
             }
         }
     }
 
-    Recording(){
+    Recording(){    //导出mp4视频函数
         let that = this;
         let onload1 = 0;
         let img = new Image();
         this.CanvasNode.recordingVideo.call(this);
 
         lz();
-        function lz(){
+        function lz(){    //循环一遍图片数组并记录导出
             img.src = that.saveto[onload1];
             img.onload = function(){
                 let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
@@ -127,7 +127,7 @@ class Canvas{
 
                 that.canvasVideoTapeCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
                 if(that.canvasvideoData.h === this.height && that.canvasvideoData.w === this.width){
-                    that.canvasVideoTapeCtx.drawImage(img, 0, 0);
+                    that.canvasVideoTapeCtx.drawImage(img, 0, 0);    //设定图片距离
                 }
                 else{
                     that.canvasVideoTapeCtx.drawImage(img, x, y, node.a, node.b);
@@ -169,7 +169,7 @@ class Canvas{
         }
     }
 
-    pictureLoad(){
+    pictureLoad(){    //重新导入页面
         let that = this;
         let img = new Image();
         img.src = this.saveto[this.videoOnload];
@@ -178,7 +178,7 @@ class Canvas{
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
             that.videoTimedisplay[0].innerHTML = that.CanvasNode.timeChange((that.videoOnload + 1)/60);    //将当前视频时间显示在屏幕上
 
-            if(!!!that.canvasvideoData){
+            if(!!!that.canvasvideoData){    //修改视频的初始数据
                 
                 that.canvasSubtitle.width = this.width;
                 that.canvasSubtitle.height = this.height;
@@ -198,7 +198,7 @@ class Canvas{
                         break;
                     }
                     case "roll":{
-                        //that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.draw(that.videoOnload);
                         break;
                     }
@@ -208,7 +208,7 @@ class Canvas{
         }
     }
 
-    canvasGIF(){
+    canvasGIF(){    //导出图片数组之后的初始化
         this.videoOnload = 0;
         this.AnimationFrameVideo = null;
         this.playbackStatus = false;
@@ -220,7 +220,7 @@ class Canvas{
         this.videoIndex = "canvas";
     }
 
-    saveBase64(){
+    saveBase64(){    //进行base64编码
         if(!this.base){
             this.base = true;  
         }
@@ -232,14 +232,14 @@ class Canvas{
         }
     }
 
-    progressbarVideo(percent, e){
+    progressbarVideo(percent, e){    //映射视频时的进度条控制
         if(this.backstageVideo.readyState === 4){  
             this.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
             this.backstageVideo.currentTime = percent * this.backstageVideo.duration;
         }
     }
 
-    progressbarCanvas(percent, e){
+    progressbarCanvas(percent, e){    //映射图片数组的进度条控制
         this.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
         this.videoOnload = parseInt(percent * this.saveto.length);
         if(this.videoOnload < 0 )this.videoOnload = 0;
@@ -247,7 +247,7 @@ class Canvas{
         this.CanvasNode.pictureLoad.call(this);
     }
 
-    textQueueObtain(canvas, w, value){
+    textQueueObtain(canvas, w, value){    //文本换行判断
         let index = 0;
         let textQueue = [];
         textQueue[index] = "";
@@ -262,7 +262,7 @@ class Canvas{
         return textQueue;
     }
 
-    addSubtitles(canvas, value, Text){
+    addSubtitles(canvas, value, Text){    //字幕操作画布函数
 
         canvas.save();
         canvas.font = Text + "px serif";    //字体大小
@@ -278,7 +278,7 @@ class Canvas{
         canvas.restore();
     }
 
-    endFrame(img, value, Text, index){
+    endFrame(img, value, Text, index){    //字幕完成添加函数
 
         this.canvasSubtitleCtx.clearRect(0, 0,this.canvasvideoData.w,this.canvasvideoData.h);
         this.canvasSubtitleCtx.drawImage(img, 0, 0);    
@@ -294,16 +294,16 @@ class Canvas{
         }
 
         this.canvasSubtitleCtx.restore();
-        this.saveto[index] = this.canvasSubtitle.toDataURL("image/png");
+        this.saveto[index] = this.canvasSubtitle.toDataURL("image/png");    //修改图片数组
     }
 
-    speedCalculation(nP, canvas, value, speed){
+    speedCalculation(nP, canvas, value, speed){    //计算滚动弹幕时间
 
         let Ti = this.videoOnload, x = nP.x;
         let length = canvas.measureText(value).width;
 
         this.ImageLayerNode.textFill(canvas, value, nP, 0);
-        while(Ti != this.saveto.length){
+        while(Ti != this.saveto.length){    //计算从起使到结束点时间
             if(x + length < this.nodePlot.x - this.canvasvideoData.w / 2){
                 break;
             }
@@ -315,32 +315,32 @@ class Canvas{
     }
 
     barr(){
-        function Barrage(ctx, value, typebullet, plot, time, speed, font) {
+        function Barrage(ctx, value, typebullet, plot, time, speed, font) {    //弹幕功能工具函数
             this.ctx = ctx;
             this.color = "#000000";
             this.value = value;
             this.x = plot.x; //x坐标
             this.y = plot.y;
             this.speed = speed;
-            this.fontSize = font;
-            this.time = time;
-            this.typebullet = typebullet;
+            this.fontSize = font;    //字体
+            this.time = time;    //时间
+            this.typebullet = typebullet;    //弹幕类型
         }
-        Barrage.prototype.draw = function(time1) {
+        Barrage.prototype.draw = function(time1) {    //滚动弹幕
             
             if(this.time.begin <= time1 && this.time.end >= time1) {
                 let d1 = time1 - this.time.begin;
                 this.ctx.save();
                 this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
                 this.ctx.fillStyle = this.color;
-                this.ctx.fillText(this.value, this.x - this.speed * d1, this.y);
+                this.ctx.fillText(this.value, this.x - this.speed * d1, this.y);    //每次减少x值来进行移动
                 this.ctx.restore();
                 
             } else {
                 return;
             }
         }
-        Barrage.prototype.drawFixed = function(time1) {
+        Barrage.prototype.drawFixed = function(time1) {    //固定弹幕
             if(this.time.begin <= time1 && this.time.end >= time1){
                 this.ctx.save();
                 this.ctx.font = this.fontSize + 'px "microsoft yahei", sans-serif';
@@ -352,15 +352,15 @@ class Canvas{
                 return;
             }
         }
-        Barrage.prototype.changebulletchat = function(ctx, x1, y1){
+        Barrage.prototype.changebulletchat = function(ctx, x1, y1){    //修改值
             this.ctx = ctx;
-            this.x = this.x - x1;
-            this.y = this.y - y1;
+            this.x = x1;
+            this.y = y1;
         }
         return Barrage;
     }
 
-    bulletchatImageC(width, height, img, i){
+    bulletchatImageC(width, height, img, i){    //将图片与弹幕导入到新的画布上，然后保存当前画布的图片
         this.canvasSubtitleCtx.clearRect(0, 0,width,height);
         this.canvasSubtitleCtx.drawImage(img, 0, 0);    
         this.canvasSubtitleCtx.save();
