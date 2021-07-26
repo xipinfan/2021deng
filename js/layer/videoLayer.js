@@ -113,17 +113,20 @@ class Canvas{
     Recording(){    //导出mp4视频函数
         let that = this;
         let onload1 = 0;
-        let img = new Image();
+        
         this.CanvasNode.recordingVideo.call(this);
+        let gif = new GIF({
+            worker: 2,
+            quality: 10,
+            workerScript: './js/layer/gif.worker.js'
+        })
 
-        lz();
-        function lz(){    //循环一遍图片数组并记录导出
-            img.src = that.saveto[onload1];
+        for( let i = 0 ; i < that.saveto.length ; i+=5 ){
+            let img = new Image();
+            img.src = that.saveto[i];
             img.onload = function(){
                 let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
                 let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
-
-                let onloadAnimation = window.requestAnimationFrame(lz);
 
                 that.canvasVideoTapeCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
                 if(that.canvasvideoData.h === this.height && that.canvasvideoData.w === this.width){
@@ -132,15 +135,57 @@ class Canvas{
                 else{
                     that.canvasVideoTapeCtx.drawImage(img, x, y, node.a, node.b);
                 }
-                onload1 = onload1 + 1;
 
-                if(onload1 >= that.saveto.length ){
-                    window.cancelAnimationFrame(onloadAnimation);
-                    that.CanvasNode.stopRecordingVideo.call(that);
-                    alert("导出成功!!!!")
+                gif.addFrame(that.canvasVideoTape, {copy:true,delay:120});
+                console.log(i);
+
+                if( i + 5 >= that.saveto.length - 1 ){
+                    //that.CanvasNode.stopRecordingVideo.call(that);
+                    console.log("????");
+                    gif.render()
+                    alert("导出成功!!!!");
                 }
             }
+            
         }
+
+        
+
+        // lz();
+        // function lz(){    //循环一遍图片数组并记录导出
+        //     img.src = that.saveto[onload1];
+        //     img.onload = function(){
+        //         let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
+        //         let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
+        //         let onloadAnimation = window.requestAnimationFrame(lz);
+
+        //         that.canvasVideoTapeCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
+        //         if(that.canvasvideoData.h === this.height && that.canvasvideoData.w === this.width){
+        //             that.canvasVideoTapeCtx.drawImage(img, 0, 0);    //设定图片距离
+        //         }
+        //         else{
+        //             that.canvasVideoTapeCtx.drawImage(img, x, y, node.a, node.b);
+        //         }
+        //         onload1 = onload1 + 1;
+        //         gif.addFrame(that.canvasVideoTape, {copy:true,delay:0});
+
+        //         if(onload1 >= that.saveto.length ){
+        //             window.cancelAnimationFrame(onloadAnimation);
+        //             that.CanvasNode.stopRecordingVideo.call(that);
+        //             gif.render()
+        //             alert("导出成功!!!!");
+        //         }
+        //     }
+        // }
+        gif.on("finished", function(blob){
+            let url = URL.createObjectURL(blob);
+            let el = document.createElement('a');
+            el.href = url;
+            el.download = 'demo-name';
+            el.click();
+            console.log(url);
+        })
     }
 
     //视频录制函数

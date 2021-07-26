@@ -42,6 +42,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
             currentPX = document.getElementById("currentPX");   //当前插入的字体大小
         let Barrage = this.CanvasNode.barr();   //用来控制弹幕功能的工具函数
         let random;   //保存随机数
+
         
         this.videoIndex = "video";   //判断当前canvas播放类型video表示映射视频，canvas表示映射图片数组
         this.saveto = [];   //保存视频截取的base64编码图片数组
@@ -289,7 +290,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     case "exportfile":{
                         if(document.getElementById("bulletchat").innerText === "添加弹幕" ){
                             if(document.getElementById("addsubtitle").innerText === "添加字幕"){
-                                that.CanvasNode.Recording.call(that);    //导出视频
+                                that.CanvasNode.Recording.call(that);    //导出视频.
                             }
                         }
                     }
