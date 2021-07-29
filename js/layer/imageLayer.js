@@ -16,14 +16,15 @@ class ImageLayer{    //图像处理工具类
         let imageData = this.canvasVideoCtx.getImageData(0,0,this.width,this.height);
         let pxList = transToRowCol( transToRGBA( imageData.data ), this.width );
         let boundary = getBoundary(this.width, this.height, pxList);
-        let px = transToPlain(pxList.slice(boundary.y1, boundary.y2), boundary.x1, boundary.x2);
+        let px = transToPlain(pxList.slice(boundary.y1, boundary.y2 + 1), boundary.x1, boundary.x2 + 1);
         let canvasTemporarily = document.createElement('canvas');
         let canvasTemporarilyCtx = canvasTemporarily.getContext('2d');
 
-        canvasTemporarily.width = boundary.x2 - boundary.x1;
-        canvasTemporarily.height = boundary.y2 - boundary.y1;
+        canvasTemporarily.width = boundary.x2 - boundary.x1 + 1;
+        canvasTemporarily.height = boundary.y2 - boundary.y1 + 1;
 
-        let imagedata = canvasTemporarilyCtx.getImageData(0,0,boundary.x2 - boundary.x1,boundary.y2 - boundary.y1);
+        let imagedata = canvasTemporarilyCtx.getImageData(0,0,boundary.x2 - boundary.x1 + 1,boundary.y2 - boundary.y1 + 1);
+
         for( let i = 0 ; i < imagedata.data.length ; i++){
             imagedata.data[i] = px[i];
         }

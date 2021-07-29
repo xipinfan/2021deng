@@ -8,14 +8,20 @@ class Tools{
         if(a <= this.width && b <= this.height){
             node.a = a;
             node.b = b;
+
+            this.proportion = 1;
         }
         else if(a > this.width && b <= this.height){
             node.a = this.width;
             node.b = b*(this.width/a);
+
+            this.proportion = this.width/a;
         }
         else if(a <= this.width && b > this.height){
             node.a = a*(this.height/b);
             node.b = this.height;
+
+            this.proportion = this.height/b;
         }
         else if(a > this.width && b > this.height){
             let aw = a - this.width;
@@ -23,12 +29,19 @@ class Tools{
             if(aw >= bh){
                 node.a = this.width;
                 node.b = b*(this.width/a);
+
+                this.proportion = this.width/a;
             }
             else{
                 node.a = a*(this.height/b);
                 node.b = this.height;
+
+                this.proportion = this.height/b;
             }
         }
+
+        
+
         return node;
     }
     //初始化 
@@ -129,12 +142,12 @@ class Tools{
 
         parentNode.appendChild(this.textarea);
 
-        this.nodePlot = { x:615,y:332.5 };
+        this.nodePlot = { x:615,y:333 };
 
         //设定图片canvas
         this.canvasVideo = document.createElement('canvas');
         this.canvasVideo.width = 1230;
-        this.canvasVideo.height = 665;
+        this.canvasVideo.height = 666;
         this.canvasVideo.style.position = "absolute";
         this.canvasVideo.style.zIndex = "1000";
         //this.canvasVideo.style.border = '2px'
@@ -143,7 +156,7 @@ class Tools{
         //设定字幕canvas
         this.canvasSubtitle = document.createElement('canvas');
         //this.canvasSubtitle.width = 1230;
-        //this.canvasSubtitle.height = 665;
+        //this.canvasSubtitle.height = 666;
         //this.canvasSubtitle.style.position = "absolute";
         this.canvasSubtitle.style.zIndex = "1001";
         this.canvasSubtitleCtx = this.canvasSubtitle.getContext('2d');
@@ -154,7 +167,7 @@ class Tools{
         this.canvasBackground = document.createElement('canvas');
         this.canvasBackground.className = "canvasStyle";
         this.canvasBackground.width = 1230;
-        this.canvasBackground.height = 665;
+        this.canvasBackground.height = 666;
         this.canvasBackground.style.position = "absolute";
         this.canvasBackground.style.zIndex = "-1";
         this.canvasBackground.style.border = '2px solid #f1f1f1'
@@ -186,11 +199,11 @@ class Tools{
         this.canvasVideoTape = document.createElement("canvas");
         this.canvasVideoTapeCtx = this.canvasVideoTape.getContext('2d');
 
-        //设置模拟图像(有一说一我不知道这怎么形容)
+        //设置操作画布(有一说一我不知道这怎么形容)
         this.canvasDemo = document.createElement("canvas");
         this.canvasDemo.className = "canvasStyle";
         this.canvasDemo.width = 1230;
-        this.canvasDemo.height = 665;
+        this.canvasDemo.height = 666;
         this.canvasDemo.style.position = "absolute";
         this.canvasDemo.style.zIndex = "1";
         this.canvasDemoCtx = this.canvasDemo.getContext("2d");

@@ -136,22 +136,24 @@ class Canvas{
                     that.canvasVideoTapeCtx.drawImage(img, x, y, node.a, node.b);
                 }
 
-                gif.addFrame(that.canvasVideoTape, {copy:true,delay:120});
-                console.log(i);
+                gif.addFrame(that.canvasVideoTape, {copy:true, delay:120});
 
                 if( i + 5 >= that.saveto.length - 1 ){
-                    //that.CanvasNode.stopRecordingVideo.call(that);
-                    console.log("????");
-                    gif.render()
-                    alert("导出成功!!!!");
+                    gif.render();
                 }
             }
-            
         }
 
-        
+        gif.on("finished", function(blob){
+            alert("导出成功!!!!");
+            let url = URL.createObjectURL(blob);
+            let el = document.createElement('a');
+            el.href = url;
+            el.download = 'demo-name';
+            el.click();
+        })
 
-        // lz();
+        // lz();    //导出MP4文件函数
         // function lz(){    //循环一遍图片数组并记录导出
         //     img.src = that.saveto[onload1];
         //     img.onload = function(){
@@ -178,14 +180,7 @@ class Canvas{
         //         }
         //     }
         // }
-        gif.on("finished", function(blob){
-            let url = URL.createObjectURL(blob);
-            let el = document.createElement('a');
-            el.href = url;
-            el.download = 'demo-name';
-            el.click();
-            console.log(url);
-        })
+        
     }
 
     //视频录制函数
@@ -229,7 +224,6 @@ class Canvas{
                 that.canvasSubtitle.height = this.height;
                 that.canvasvideoData = { w:this.width,h:this.height };
                 that.canvasvideoNode = { w:node.a, h:node.b };
-                console.log(that.canvasvideoData);
             }
             that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
@@ -279,6 +273,7 @@ class Canvas{
 
     progressbarVideo(percent, e){    //映射视频时的进度条控制
         if(this.backstageVideo.readyState === 4){  
+            //window.cancelAnimationFrame(this.ed);
             this.progressoafter.style.width = (e.pageX - progressobar.offsetLeft) + "px";
             this.backstageVideo.currentTime = percent * this.backstageVideo.duration;
         }
@@ -310,6 +305,8 @@ class Canvas{
     addSubtitles(canvas, value, Text){    //字幕操作画布函数
 
         canvas.save();
+        Text = parseInt(Text * this.proportion);
+        console.log(Text);
         canvas.font = Text + "px serif";    //字体大小
 
         let textQueue = this.CanvasNode.textQueueObtain(canvas, this.canvasvideoData.w, value);
@@ -317,6 +314,7 @@ class Canvas{
         for(let i = 0 ; i < textQueue.length ; i++){
             let nP = { x:this.nodePlot.x-canvas.measureText(textQueue[i]).width/2,
                         y:this.nodePlot.y+this.canvasvideoNode.h/2- (textQueue.length-1) * Text };
+            console.log(canvas.measureText(textQueue[i]).width);
             this.ImageLayerNode.textFill(canvas, textQueue[i], nP, i * Text);
         }
 
@@ -335,7 +333,8 @@ class Canvas{
         for(let i = 0 ; i < textQueue.length ; i++){
             let nP = { x:this.canvasvideoData.w/2 - this.canvasSubtitleCtx.measureText(textQueue[i]).width/2 ,
                     y:this.canvasvideoData.h- (textQueue.length-1) * Text } ;
-                this.ImageLayerNode.textFill(this.canvasSubtitleCtx, textQueue[i], nP, i * Text);
+            console.log(this.canvasSubtitleCtx.measureText(textQueue[i]).width);
+            this.ImageLayerNode.textFill(this.canvasSubtitleCtx, textQueue[i], nP, i * Text);
         }
 
         this.canvasSubtitleCtx.restore();
@@ -409,6 +408,8 @@ class Canvas{
         this.canvasSubtitleCtx.clearRect(0, 0,width,height);
         this.canvasSubtitleCtx.drawImage(img, 0, 0);    
         this.canvasSubtitleCtx.save();
+        console.log(this.barrage)
+        console.log("??");
         switch(this.barrage.typebullet){
             case "bottom":
             case "top":{
