@@ -69,6 +69,9 @@ class Canvas{
     recordPlay(){    //开始播放图片数组
         let that = this;
         let img = new Image();
+        let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
+        let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
+
         func();
         function func(){
             that.playbackStatus = true;
@@ -79,27 +82,27 @@ class Canvas{
 
             img.src = that.saveto[that.videoOnload];    //导入
             img.onload = function(){
-                let node = that.contrast(that.canvasvideoData.w,that.canvasvideoData.h);
-                let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
 
                 that.canvasVideoCtx.clearRect(0, 0,that.canvasVideo.width,that.canvasVideo.height);    //清空canvas
                 that.canvasVideoCtx.drawImage(img, 0, 0, that.canvasvideoData.w, that.canvasvideoData.h, x, y, node.a, node.b);                 
             }
 
             if(that.barrage != null){
+                console.log("????");
+                that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                that.canvasSubtitleCtx.clearRect( 0, 0, that.canvasvideoData.w, that.canvasvideoData.h); 
                 switch(that.barrage.typebullet){
                     case "bottom":
                     case "top":{
-                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.drawFixed(that.videoOnload);
                         break;
                     }
                     case "roll":{
-                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.draw(that.videoOnload);
                         break;
                     }
                 }
+                that.canvasDemoCtx.drawImage(that.canvasSubtitle, 0, 0,that.videoData.w,that.videoData.h, x, y, node.a, node.b);
             }
 
             that.videoOnload = that.videoOnload + 1;
@@ -229,19 +232,20 @@ class Canvas{
             that.canvasVideoCtx.drawImage(img, 0, 0, this.width, this.height, x, y, node.a, node.b);    
 
             if(that.barrage != null){
+                that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                that.canvasSubtitleCtx.clearRect( 0, 0, that.canvasvideoData.w, that.canvasvideoData.h); 
                 switch(that.barrage.typebullet){
                     case "bottom":
                     case "top":{
-                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.drawFixed(that.videoOnload);
                         break;
                     }
                     case "roll":{
-                        that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.barrage.draw(that.videoOnload);
                         break;
                     }
                 }
+                that.canvasDemoCtx.drawImage(that.canvasSubtitle, 0, 0,that.videoData.w,that.videoData.h, x, y, node.a, node.b);
             }
 
         }
@@ -304,19 +308,23 @@ class Canvas{
 
     addSubtitles(canvas, value, Text){    //字幕操作画布函数
 
+        let node = this.contrast(this.videoData.w,this.videoData.h);
+        let x1 = this.nodePlot.x - node.a/2, y1 = this.nodePlot.y - node.b/2;
+
+        this.canvasSubtitleCtx.clearRect(0, 0,this.canvasvideoData.w,this.canvasvideoData.h);
+
         canvas.save();
-        Text = parseInt(Text * this.proportion);
-        console.log(Text);
         canvas.font = Text + "px serif";    //字体大小
 
         let textQueue = this.CanvasNode.textQueueObtain(canvas, this.canvasvideoData.w, value);
 
         for(let i = 0 ; i < textQueue.length ; i++){
-            let nP = { x:this.nodePlot.x-canvas.measureText(textQueue[i]).width/2,
-                        y:this.nodePlot.y+this.canvasvideoNode.h/2- (textQueue.length-1) * Text };
-            console.log(canvas.measureText(textQueue[i]).width);
+            let nP = { x:this.canvasvideoData.w/2 - canvas.measureText(textQueue[i]).width/2,
+                        y:this.canvasvideoData.h - (textQueue.length - 1 ) * Text - 2 };
             this.ImageLayerNode.textFill(canvas, textQueue[i], nP, i * Text);
         }
+
+        this.canvasDemoCtx.drawImage(this.canvasSubtitle, 0, 0,this.videoData.w,this.videoData.h, x1, y1, node.a, node.b);
 
         canvas.restore();
     }
@@ -333,7 +341,6 @@ class Canvas{
         for(let i = 0 ; i < textQueue.length ; i++){
             let nP = { x:this.canvasvideoData.w/2 - this.canvasSubtitleCtx.measureText(textQueue[i]).width/2 ,
                     y:this.canvasvideoData.h- (textQueue.length-1) * Text } ;
-            console.log(this.canvasSubtitleCtx.measureText(textQueue[i]).width);
             this.ImageLayerNode.textFill(this.canvasSubtitleCtx, textQueue[i], nP, i * Text);
         }
 
@@ -341,14 +348,19 @@ class Canvas{
         this.saveto[index] = this.canvasSubtitle.toDataURL("image/png");    //修改图片数组
     }
 
-    speedCalculation(nP, canvas, value, speed){    //计算滚动弹幕时间
+    speedCalculation(nP, value, speed){    //计算滚动弹幕时间
 
+        let node = this.contrast(this.videoData.w,this.videoData.h);
+        let x1 = this.nodePlot.x - node.a/2, y1 = this.nodePlot.y - node.b/2;
         let Ti = this.videoOnload, x = nP.x;
-        let length = canvas.measureText(value).width;
+        let length = this.canvasSubtitleCtx.measureText(value).width;
 
-        this.ImageLayerNode.textFill(canvas, value, nP, 0);
+        this.canvasSubtitleCtx.clearRect(0, 0, this.canvasvideoData.w, this.canvasvideoData.h);
+        this.ImageLayerNode.textFill(this.canvasSubtitleCtx, value, nP, 0);
+        this.canvasDemoCtx.drawImage(this.canvasSubtitle, 0, 0,this.videoData.w,this.videoData.h, x1, y1, node.a, node.b);
+
         while(Ti != this.saveto.length){    //计算从起使到结束点时间
-            if(x + length < this.nodePlot.x - this.canvasvideoData.w / 2){
+            if(x + length < 0){
                 break;
             }
             x -= speed;
@@ -408,8 +420,6 @@ class Canvas{
         this.canvasSubtitleCtx.clearRect(0, 0,width,height);
         this.canvasSubtitleCtx.drawImage(img, 0, 0);    
         this.canvasSubtitleCtx.save();
-        console.log(this.barrage)
-        console.log("??");
         switch(this.barrage.typebullet){
             case "bottom":
             case "top":{
@@ -421,5 +431,26 @@ class Canvas{
             }
         }    
         this.saveto[i] = this.canvasSubtitle.toDataURL("image/png");
+    }
+
+    bulletchatChange(typebullet, value, random){
+        let xx, yy;
+
+        switch(typebullet){    //因为图片的分辨率与画布大小不一样，需要转换
+            case "top":
+                xx = this.canvasvideoData.w / 2 - this.canvasSubtitleCtx.measureText(value).width/2;
+                yy = this.canvasvideoData.h / 2 - this.canvasvideoData.h / 2 * random;
+                break;
+            case "roll":
+                xx = this.canvasvideoData.w;
+                yy = this.canvasvideoData.h * random;
+                break;
+            case "bottom":
+                xx = this.canvasvideoData.w / 2 - this.canvasSubtitleCtx.measureText(value).width/2;
+                yy = this.canvasvideoData.h / 4 * random + this.canvasvideoData.h / 4 * 3;
+                break;
+        }
+
+        return { xx, yy };
     }
 }

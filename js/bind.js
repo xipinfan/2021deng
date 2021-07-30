@@ -32,7 +32,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
         })
     }
     videoButtonBindInit(){    //视频指令绑定
-        let xx , yy;
         let that = this, 
             nodeState = false,  //当前是否按下鼠标
             start, end,     //字幕弹幕开始结束点
@@ -107,7 +106,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
         })
 
         document.querySelectorAll('#videoButton>button').forEach((element)=>{
+            
             element.addEventListener("click",function(e){
+                let node = that.contrast(that.videoData.w,that.videoData.h);
+                let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
                 switch(element.id){
                     case "play1":{    //播放视频
                         that.backstageVideo.play(); 
@@ -148,7 +150,8 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 if(this.innerText === "添加字幕"){
 
                                     that.canvasDemo.style.zIndex = 1001;   //操作画布置顶
-                                    that.CanvasNode.addSubtitles.call(that, that.canvasDemoCtx, value, Text, 0);   //将字幕添加到操作画布
+                                    
+                                    that.CanvasNode.addSubtitles.call(that, that.canvasSubtitleCtx, value, Text, 0);   //将字幕添加到操作画布
 
                                     this.innerText = "选择结束帧";
                                     document.getElementById("subtitlebegin").innerHTML = that.CanvasNode.timeChangeFrame(that.videoOnload);   //记录开始时间
@@ -186,77 +189,19 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         let speed = parseInt(document.getElementById("speed").innerText);    //设定弹幕运动速度
                         that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
                         that.canvasDemo.style.zIndex = 1001;
-                        that.canvasDemoCtx.save();
-                        that.canvasDemoCtx.font = Text + "px serif";    //字体大小
+                        that.canvasSubtitleCtx.save();
+                        that.canvasSubtitleCtx.font = Text + "px serif";    //字体大小
                         if(document.getElementById("addsubtitle").innerText === "选择结束帧"){   //当前字幕模式
 
-                            that.CanvasNode.addSubtitles.call(that, that.canvasDemoCtx, value, Text, 0);   //在操作画布上进行绘制
+                            that.CanvasNode.addSubtitles.call(that, that.canvasSubtitleCtx, value, Text, 0);   //将字幕添加到操作画布
                             that.canvasDemoCtx.restore();   
                         }
                         else if(document.getElementById("bulletchat").innerText === "确认添加"){   //当前为弹幕模式
-                            switch(typebullet){   //三种不同的弹幕模式
-                                case "top":{   //顶部弹幕
-                                    let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
-                                        y:that.nodePlot.y - that.canvasvideoData.h / 2 * Math.random()};   //设定起使点
 
-                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);   //绘制
-                                    //导入弹幕工具函数
-                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
-                                    break;
-                                }
-                                case "roll":{   //滚动弹幕
-                                    let nP = { x: that.nodePlot.x + that.canvasvideoData.w / 2,
-                                               y: that.nodePlot.y - that.canvasvideoData.h / 2 + that.canvasvideoData.h * Math.random() };
-                                    //获取滚动结束的点
-                                    let Ti = that.CanvasNode.speedCalculation.call(that, nP, that.canvasDemoCtx, value, speed);
-                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:Ti}, speed, Text);
-                                    break;
-                                }
-                                case "bottom":{   //底部弹幕
-                                    let nP = { x:that.nodePlot.x-that.canvasDemoCtx.measureText(value).width/2,
-                                        y:that.nodePlot.y + that.canvasvideoData.h / 4 + that.canvasvideoData.h / 4 * Math.random()};
-                                    
-                                    that.ImageLayerNode.textFill(that.canvasDemoCtx, value, nP, 0);
-                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
-                                    break;
-                                }
-                            }
-                            that.canvasDemoCtx.restore();
-                        }
-                        break;
-                    }
-                    case "bulletchat":{   //弹幕功能
-                        let value = document.getElementById("subtitle").value;
-                        let Text = document.getElementById("current").innerText;
-                        let time = 2;    //设定弹幕存在时间
-                        let speed = parseInt(document.getElementById("speed").innerText);    //设定弹幕运动速度
+                            let { xx, yy} = that.CanvasNode.bulletchatChange.call(that, typebullet, value, random);
 
-                        if(this.innerText === "添加弹幕"){
-                            let node = that.contrast(that.videoData.w,that.videoData.h);
-                            let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
-
-                            that.barrage = null;   //初始化
-                            that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
-                            that.canvasDemo.style.zIndex = 1001;
-                            that.canvasSubtitleCtx.save();
-                            that.canvasSubtitleCtx.font = Text + 'px "microsoft yahei", sans-serif';    //字体大小
-                            random = Math.random();
-
-                            switch(typebullet){    //因为图片的分辨率与画布大小不一样，需要转换
-                                case "top":
-                                    xx = that.canvasvideoData.w / 2 - that.canvasSubtitleCtx.measureText(value).width/2;
-                                    yy = that.canvasvideoData.h / 2 - that.canvasvideoData.h / 2 * random;
-                                    break;
-                                case "roll":
-                                    xx = that.canvasvideoData.w;
-                                    yy = that.canvasvideoData.h * random;
-                                    break;
-                                case "bottom":
-                                    xx = that.canvasvideoData.w / 2 - that.canvasSubtitleCtx.measureText(value).width/2;
-                                    yy = that.canvasvideoData.h / 4 * random + that.canvasvideoData.h / 4 * 3;
-                                    break;
-                            }
-
+                            if(yy <= Text)yy = Text + 1;
+                            if(yy >= that.canvasvideoData.h - Text)yy = that.canvasvideoData.h - Text - 1;
 
                             switch(typebullet){
                                 case "top":{   //顶部弹幕
@@ -269,12 +214,10 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                     break;
                                 }
                                 case "roll":{   //滚动弹幕
-                                    let nP = { x: that.nodePlot.x + that.canvasvideoNode.w / 2,
-                                               y: that.nodePlot.y - that.canvasvideoNode.h / 2 + that.canvasvideoNode.h * random };
 
-                                    let Ti = that.CanvasNode.speedCalculation.call(that, nP, that.canvasDemoCtx, value, speed);
+                                    let Ti = that.CanvasNode.speedCalculation.call(that, { x:xx, y:yy }, value, speed);
                                     //获取滚动结束的点
-                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:Ti}, speed, Text);
+                                    that.barrage = new Barrage(that.canvasSubtitleCtx, value, typebullet, { x:xx, y:yy }, {begin: that.videoOnload, end:Ti}, speed, Text);
                                     break;
                                 }
                                 case "bottom":{   //底部弹幕
@@ -282,7 +225,56 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                     that.ImageLayerNode.textFill(that.canvasSubtitleCtx, value, { x:xx, y:yy }, 0);
                                     that.canvasDemoCtx.drawImage(that.canvasSubtitle, 0, 0,that.videoData.w,that.videoData.h, x, y, node.a, node.b);
                                     
-                                    that.barrage = new Barrage(that.canvasDemoCtx, value, typebullet, nP, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    that.barrage = new Barrage(that.canvasSubtitleCtx, value, typebullet, { x:xx, y:yy }, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case "bulletchat":{   //弹幕功能
+                        let value = document.getElementById("subtitle").value;
+                        let Text = document.getElementById("current").innerText;
+                        let time = 2;    //设定弹幕存在时间
+                        let speed = parseInt(document.getElementById("speed").innerText);    //设定弹幕运动速度
+
+                        if(this.innerText === "添加弹幕"){
+
+                            that.barrage = null;   //初始化
+                            that.canvasDemoCtx.clearRect( 0, 0, that.canvasVideo.width, that.canvasVideo.height); 
+                            that.canvasDemo.style.zIndex = 1001;
+                            that.canvasSubtitleCtx.save();
+                            that.canvasSubtitleCtx.font = Text + 'px "microsoft yahei", sans-serif';    //字体大小
+                            random = Math.random();
+
+                            let { xx, yy} = that.CanvasNode.bulletchatChange.call(that, typebullet, value, random);
+
+                            if(yy <= Text)yy = Text + 1;
+                            if(yy >= that.canvasvideoData.h - Text)yy = that.canvasvideoData.h - Text - 1;
+
+                            switch(typebullet){
+                                case "top":{   //顶部弹幕
+
+                                    that.canvasSubtitleCtx.clearRect(0, 0, that.canvasvideoData.w, that.canvasvideoData.h);
+                                    that.ImageLayerNode.textFill(that.canvasSubtitleCtx, value, { x:xx, y:yy }, 0);
+                                    that.canvasDemoCtx.drawImage(that.canvasSubtitle, 0, 0,that.videoData.w,that.videoData.h, x, y, node.a, node.b);
+                                    //导入弹幕工具函数
+                                    that.barrage = new Barrage(that.canvasSubtitleCtx, value, typebullet, { x:xx, y:yy }, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
+                                    break;
+                                }
+                                case "roll":{   //滚动弹幕
+
+                                    let Ti = that.CanvasNode.speedCalculation.call(that, { x:xx, y:yy }, value, speed);
+                                    //获取滚动结束的点
+                                    that.barrage = new Barrage(that.canvasSubtitleCtx, value, typebullet, { x:xx, y:yy }, {begin: that.videoOnload, end:Ti}, speed, Text);
+                                    break;
+                                }
+                                case "bottom":{   //底部弹幕
+                                    that.canvasSubtitleCtx.clearRect(0, 0, that.canvasvideoData.w, that.canvasvideoData.h);
+                                    that.ImageLayerNode.textFill(that.canvasSubtitleCtx, value, { x:xx, y:yy }, 0);
+                                    that.canvasDemoCtx.drawImage(that.canvasSubtitle, 0, 0,that.videoData.w,that.videoData.h, x, y, node.a, node.b);
+                                    
+                                    that.barrage = new Barrage(that.canvasSubtitleCtx, value, typebullet, { x:xx, y:yy }, {begin: that.videoOnload, end:that.videoOnload+60*time}, 0, Text);
                                     break;
                                 }
                             }
@@ -292,10 +284,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         else{   //确认添加
                             new Promise((resolve,reject)=>{
                                 if(that.barrage != null && !!that.barrage.value){
-                                    // that.canvasSubtitleCtx.save();
-                                    // that.canvasSubtitleCtx.font = Text + 'px "microsoft yahei", sans-serif';    //字体大小
-                                    // that.canvasSubtitleCtx.restore();
-                                    // that.barrage.changebulletchat(that.canvasSubtitleCtx, xx, yy);
 
                                     for( let i = that.barrage.time.begin ; i <= Math.min(that.barrage.time.end, that.saveto.length - 1) ; i++ ){
                                         let img = new Image();
