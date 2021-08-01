@@ -704,6 +704,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                 that.canvasVideoCtx.drawImage(that.canvasDemo,0,0);  
                 that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
                 that.ImageData.splice(0);
+                controlnode = !controlnode;    //转换形态  
             }
         })
 
@@ -772,7 +773,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                 that.ImageLayerNode.shear.call(that, firstplot, endplot, shearplot);
                                 that.canvasVideoCtx.drawImage(that.canvasDemo,0,0);  
                                 that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
-                            })  
+                            }) 
                         }
                     }
                     that.directionIndex = 0;    //设定翻转和点初始化
@@ -786,6 +787,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     endLine.y = e.layerY;
                     firstplot = { x:Math.min(beginLine.x,endLine.x),y:Math.min(beginLine.y,endLine.y) };
                     endplot = { x:Math.max(beginLine.x,endLine.x),y:Math.max(beginLine.y,endLine.y) };
+                    console.log({firstplot,endplot});
                     switch(that.toolCurrent){    //判断虚拟框
                         case "line":
                             that.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };
@@ -808,6 +810,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     if( that.toolCurrent === "shear" ){
                         that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
                         shearplot = {x1:firstplot.x, y1:firstplot.y, x2:endplot.x, y2:endplot.y};
+                        console.log(shearplot);
                         that.ImageLayerNode.shear.call(that, firstplot, endplot, shearplot);
                     }
                     nodeState = false;    //记录鼠标抬起
