@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/iconfont.css">
+    <link rel="stylesheet" href="./css/app.css">
+    <title>Document</title>
+</head>
+<body oncontextmenu="return false" onselectstart="return false">
+    <div id="wrapper">
+        <header>
+            <input type="file" name="VideoFile" accept="video/*">
+            <input type="file" name="ImageFile" accept="image/*">
+            <div id="home">
+                <svg class="icon" aria-hidden="true">
+                    <use xlink:href="#icon-home"></use>
+                </svg>
+            </div>
+            <nav id="header-nav">
+                <ul>
+                    <li>
+                        <span>文件</span>
+                        <ul class="nav-sub">
+							<li id="openImageFile">打开图片文件</li>
+                            <li id="openVideoFile">打开视频文件</li>
+							<li id="openUrl">从URL打开</li>
+							<li id="saveImage">保存图片</li>
+							<li id="saveGIFImage">保存GIF图</li>
+						</ul>
+                    </li>
+                    <li>
+                        <span>形状</span>
+                        <ul class="nav-sub">
+                            <li id="pencil">铅笔</li>
+                            <li id="line">直线</li>
+                            <li id="brush">刷子</li>
+                            <li id="round">圆</li>
+                            <li id="rectangle">矩形</li>
+							<li id="rightTriangle">直角三角形</li>
+                            <li id="isosceles">等腰三角形</li>
+                            <li id="diamond">菱形</li>
+						</ul>
+                    </li>
+                    <li>
+                        <span>工具</span>
+                        <ul class="nav-sub">
+							<li id="eraser">橡皮擦</li>
+                            <li id="bucket">油漆桶</li>
+                            <li id="text">文本</li>
+                            <li id="shear">剪切</li>
+                            <li id="extract">颜色提取器</li>
+						</ul>
+                    </li>
+                    <li>
+                        <span>图像</span>
+                        <ul class="nav-sub">
+                            <li id="white">重置</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <span>视频</span>
+                        <ul class="nav-sub">
+                            <li id="addsubtitle">添加字幕</li>
+                            <li id="bulletchat">添加弹幕</li>
+                            <li id="intercept">截取当前帧</li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+            <div id="toggle" class="iconfont" title="关闭选项栏">
+                <ul>
+                    <li title="撤销">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-weibiaoti545"></use>
+                        </svg>
+                    </li>
+                    <li title="下一步">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-weibiaoti546"></use>
+                        </svg>
+                    </li>
+                    <li title="保存">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-xiazai"></use>
+                        </svg>
+                    </li>
+                    <li title="缩小" class="toggle-control">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-icon--1"></use>
+                        </svg>
+                    </li>
+                    <li title="展开" class="toggle-control" style="display: none;">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-icon--"></use>
+                        </svg>
+                    </li>
+                </ul>
+            </div>
+            <div class="splitLine" style="width: 2px;height: 100%;"></div>
+            <div id="header-logo">ohhhh</div>
+        </header>
+        <main>
+            <nav id="main-nav">
+                <div class="splitLine"></div>
+                <ul>
+                    <li title="图像变换">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-fangxiang"></use>
+                        </svg>
+                    </li>
+                    <li title="剪切">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-jianqie"></use>
+                        </svg>
+                    </li>
+                    <li title="画笔">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-huabi"></use>
+                        </svg>
+                    </li>
+                    <li title="拾色器">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-dropper"></use>
+                        </svg>
+                    </li>
+                    <li title="油漆桶">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-youqitong_huaban1"></use>
+                        </svg>
+                    </li>
+                    <li title="橡皮擦">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-rubber"></use>
+                        </svg>
+                    </li>
+                    <li title="文本工具">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-wenben"></use>
+                        </svg>
+                    </li>
+                    <li title="形状工具">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-14xingzhuangjiehe"></use>
+                        </svg>
+                    </li>
+                    <li title="重置画板">
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-baiban"></use>
+                        </svg>
+                    </li>
+                </ul>
+                <div class="splitLine"></div>
+            </nav>
+            <div id="main-panel" style="display: none;" >
+                <div id="main-panel-title">动！！！</div>
+                <span>X</span>
+                <div id="main-panel-content"></div>
+                <div id="main-panel-oper"></div>
+            </div>
+            <div id="main-content" onmousewheel="return false">
+                <div id="content" >
+                    <div id="contains"></div>
+                </div>
+                <div id="player" style="display: none;">
+                    <svg class="icon" aria-hidden="true" style="display:none;">
+                        <use xlink:href="#icon-weibiaoti--"></use>
+                    </svg>    
+                    <svg class="icon" aria-hidden="true">
+                        <use xlink:href="#icon-weibiaoti--1"></use>
+                    </svg>
+                    <span class="timedisplay">00:00</span>
+                    <div id="progressrange">
+                        <div id="progressobar">
+                            <div id="progressoafter">
+                                <div id="progressoindex"></div>
+                            </div>
+                        </div>    
+                    </div>
+                    <span class="timedisplay">00:99</span>
+                </div>
+                
+            </div>
+            <div id="main-right">
+                <div id="buttonLayer">
+                    <input type="button" value="导入图片">
+                    <input type="button" value="导入视频">
+                    <input type="text" placeholder="输入想要素材关键字">
+                    <input type="button" value="搜索素材">
+                </div>
+            </div>
+        </main>
+        <footer style="text-align: center;">
+            <span>诶嘿</span>
+        </footer>
+    </div>
+    <template id="txbh-template">
+		<div id="txhb-panel" class="panel">
+			<div>
+				<label for="img-width">图像宽度：</label>
+				<input type="number" value="2" id="img-width" min="0" disabled />
+			</div>
+			<div>
+				<label for="img-height">图像长度：</label>
+				<input type="number" value="2" id="img-height" min="0" disabled />
+			</div>
+			<div>
+				<label for="img-posX">图像位置(X)：</label>
+				<input type="number" value="2" id="img-posX" min="0" disabled />
+			</div>
+			<div>
+				<label for="img-posY">图像位置(Y)：</label>
+				<input type="number" value="2" id="img-posY" min="0" disabled />
+			</div>
+		</div>
+	</template>
+    <template id="jq-template">
+		<div id="jq-panel" class="panel">
+			<div>
+				<label for="jq-width">截取宽度：</label>
+				<input type="number" id="jq-width" min="0" value="0" disabled />
+			</div>
+			<div>
+				<label for="jq-height">截取长度：</label>
+				<input type="number" id="jq-height" min="0" value="0" disabled />
+			</div>
+			<div>
+				<label for="jq-posX">截取位置(X)：</label>
+				<input type="number" id="jq-posX" min="0" value="0" disabled />
+			</div>
+			<div>
+				<label for="jq-posY">截取位置(Y)：</label>
+				<input type="number" id="jq-posY" min="0" value="0" disabled />
+			</div>
+		</div>
+	</template>
+    <template id="hb-template">
+		<div id="hb-panel" class="panel">
+			<div>
+				<label for="hb-size">画笔大小：</label>
+				<input type="range" id="hb-size" min="1" max="100" value="6" step="1" />
+			</div>
+			<div>
+				<label for="hb-color">画笔颜色：</label>
+				<input type="color" id="hb-color" value="#ff0000" />
+			</div>
+		</div>
+	</template>
+    <template id="ssq-template">
+		<div id="ssq-panel" class="panel">
+			<div>
+				<label for="ssq-posX">目标位置(X)：</label>
+				<input type="number" id="ssq-posX" min="0" value="0" disabled />
+			</div>
+			<div>
+				<label for="ssq-posY">目标位置(Y)：</label>
+				<input type="number" id="ssq-posY" min="0" value="0" disabled />
+			</div>
+			<div>
+				<label for="ssq-color">目标颜色：</label>
+				<input type="color" id="ssq-color" />
+			</div>
+		</div>
+	</template>
+    <template id="yqt-template">
+		<div id="yqt-panel" class="panel">
+			<div>
+				<label for="yqt-power">力度：</label>
+				<input type="range" id="yqt-power" min="1" max="255" value="30" step="1" />
+			</div>
+			<div>
+				<label for="yqt-color">颜色：</label>
+				<input type="color" id="yqt-color" value="#ffffff" />
+			</div>
+		</div>
+	</template>
+    <template id="xpc-template">
+		<div id="xpc-panel" class="panel">
+			<div>
+				<label for="xpc-size">大小：</label>
+				<input type="range" id="xpc-size" min="1" max="100" value="3" step="1" />
+			</div>
+			<div>
+				<label for="xpc-power">力度：</label>
+				<input type="range" id="xpc-power" min="0" max="1" value="0.7" step="0.01" />
+			</div>
+		</div>
+	</template>
+    <template id="wbgj-template">
+		<div id="wbgj-panel" class="panel">
+			<div>
+				<label for="wbgj-font-family">字体样式：</label>
+				<select id="wbgj-font-family">
+					<option value="sans-serif" selected="">sans-serif</option>
+					<option value="Arial">Arial</option>
+					<option value="Arial Black">Arial Black</option>
+					<option value="Arial Narrow">Arial Narrow</option>
+					<option value="Impact">Impact</option>
+					<option value="Georgia">Georgia</option>
+					<option value="微软雅黑">微软雅黑</option>
+					<option value="宋体">宋体</option>
+					<option value="Times New Roman">Times New Roman</option>
+				</select>
+			</div>
+			<div>
+				<label for="wbgj-font-weight">字体粗细：</label>
+				<select id="wbgj-font-weight">
+					<option value="100">变细</option>
+					<option value="400" selected>正常</option>
+					<option value="900">加粗</option>
+				</select>
+			</div>
+			<div>
+				<label for="wbgj-text-style">文字风格：</label>
+				<select id="wbgj-text-style">
+					<option value="1" selected>填充</option>
+					<option value="0">描边</option>
+				</select>
+			</div>
+			<div>
+				<label for="wbgj-text-size">文字大小：</label>
+				<input type="number" id="wbgj-text-size" min="1" max="100" step="1" value="20">
+			</div>
+			<div>
+				<label for="wbgj-text-color">文字颜色：</label>
+				<input type="color" id="wbgj-text-color" value="#000000" />
+			</div>
+		</div>
+	</template>
+    <template id="xzgj-template">
+		<div id="xzgj-panel" class="panel">
+            <!-- &nbsp;&nbsp; -->
+			<div>
+				<span>绘制直线</span>
+			</div>
+			<div>
+				<span>绘制圆形</span>
+			</div>
+            <div>
+				<span>绘制矩形</span>
+			</div>
+			<div>
+				<span>绘制直角三角形</span>
+			</div>
+            <div>
+				<span>绘制等腰三角形</span>
+			</div>
+            <div>
+				<span>绘制菱形</span>
+			</div>
+		</div>
+	</template>
+    <script src="./js/iconfont.js"></script>
+</body>
+<script>
+    let cc = document.getElementById("content");
+    let h = cc.getBoundingClientRect().height;
+    let w = cc.getBoundingClientRect().width;
+    cc.style.height = h + 'px';
+    cc.style.width = w + 'px';
+    let mainNav = document.querySelectorAll("#main-nav>ul>li");
+    let mainPanel = document.querySelectorAll("#main-panel")[0];
+    let mainPanelcontent = document.querySelector("#main-panel-content");
+    let mainPaneltitle = document.querySelector("#main-panel-title");
+    let PanelOut = document.querySelector("#main-panel>span");
+    let node = "",indexXzgj = "";
+    function Panelchange(){
+        let t;
+        switch(this.title){
+            case "图像变换":{
+                t = document.getElementById("txbh-template");
+                break;
+            }
+            case "剪切":{
+                t = document.getElementById("jq-template");
+                break;
+            }
+            case "画笔":{
+                t = document.getElementById("hb-template");
+                break;
+            }
+            case "拾色器":{
+                t = document.getElementById("ssq-template");
+                break;
+            }
+            case "油漆桶":{
+                t = document.getElementById("yqt-template");
+                break;
+            }
+            case "橡皮擦":{
+                t = document.getElementById("xpc-template");
+                break;
+            }
+            case "文本工具":{
+                t = document.getElementById("wbgj-template");
+                break;
+            }
+            case "形状工具":{
+                t = document.getElementById("xzgj-template");
+
+                break;
+            }
+        }
+        if(t)mainPanelcontent.appendChild(t.content.cloneNode(true));
+        if(this.title == "形状工具"){
+            mainPanelcontent.querySelectorAll("#xzgj-panel>div").forEach((e)=>{
+                e.addEventListener("click",function(){
+                    if(indexXzgj != this){
+                        indexXzgj.style = "";
+                        this.style.backgroundColor = "rgb(53, 53, 53)";
+                        this.style.color = "white";
+                        indexXzgj = this;
+                    }
+                })
+                console.log(e);
+            })
+        }
+    }
+    mainNav.forEach((e)=>{
+        e.addEventListener("click",function(em){
+            mainPaneltitle.innerHTML = this.title;
+            if(mainPanel.style.display === "none"){
+                mainPanel.style.display = "flex";
+                mainPanel.className = "mainPanelUpAnima";
+                this.className = "active";
+                Panelchange.call(this);
+            }
+            else{
+                mainPanelcontent.innerHTML = "";
+                node.className = "";
+                if(node.title == this.title){
+                    mainPanel.className = "mainPanelOutAnima";
+                }
+                else{
+                    this.className = "active";
+                    Panelchange.call(this);
+                }
+                
+            }
+            node = this;
+        })
+    })
+    mainPanel.addEventListener("webkitAnimationEnd",function(){
+        if(this.className == "mainPanelOutAnima"){
+            this.style.display = "none";
+            mainPanelcontent.innerHTML = "";
+            indexXzgj.className = "";
+        }
+    })
+    PanelOut.addEventListener("click",function(){
+        //mainPanelcontent.innerHTML = "";
+        mainPanel.className = "mainPanelOutAnima";
+        node.className = "";
+    })
+    let control = "";
+    let headerlogo = document.querySelector("#header-logo");
+    let mainright = document.querySelector("#main-right");
+    document.querySelectorAll(".toggle-control").forEach((e)=>{
+        if(e.title === "展开")control = e;
+        e.addEventListener("click",function(){
+            console.log(mainright.getBoundingClientRect());
+            if(this.title == "缩小"){
+                mainright.className = "mainRightOutAnima";
+                headerlogo.className = "mainRightOutAnima";
+            }
+            else{
+                headerlogo.style.display = "block";
+                mainright.style.display = "block";
+                mainright.className = "mainRightUpAnima";
+                headerlogo.className = "mainRightUpAnima";
+            }
+            this.style.display = "none";
+            control.style.display = "block";
+            control = this;
+        })
+    })
+    mainright.addEventListener("webkitAnimationEnd",function(){
+        if(mainright.className == "mainRightOutAnima"){
+            mainright.style.display = "none";
+            headerlogo.style.display = "none";
+        }
+    })
+
+</script>
+</html>
