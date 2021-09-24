@@ -8,7 +8,6 @@ class Tools{
         if(a <= this.width && b <= this.height){
             node.a = a;
             node.b = b;
-
             this.proportion = 1;
         }
         else if(a > this.width && b <= this.height){
@@ -39,9 +38,6 @@ class Tools{
                 this.proportion = this.height/b;
             }
         }
-
-        
-
         return node;
     }
     //初始化 

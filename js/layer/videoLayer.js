@@ -14,7 +14,6 @@ class Canvas{
     onloadOpenVideo(videoWidth,videoHeight){
         let that = this;
         let node = that.contrast(videoWidth,videoHeight);
-        let dd = 0;
         render();
         function render(){    //将视频投放到canvas上
             let x = that.nodePlot.x - node.a/2, y = that.nodePlot.y - node.b/2;
@@ -108,7 +107,6 @@ class Canvas{
             that.videoOnload = that.videoOnload + 1;
             if(that.videoOnload >= that.saveto.length ){    //当到达结尾时结束
                 that.videoOnload --;
-                document.querySelector("#progressopen").click();    //修改播放图标样式
             }
         }
     }
@@ -252,15 +250,18 @@ class Canvas{
     }
 
     canvasGIF(){    //导出图片数组之后的初始化
+        console.log("??");
         this.videoOnload = 0;
         this.AnimationFrameVideo = null;
         this.playbackStatus = false;
         document.querySelector("#inputVido").value = "";
         this.backstageVideo.src = "";
+        console.log(this.backstageVideo.src)
         this.videoTimedisplay[0].innerHTML = "00:00";
-        this.videoTimedisplay[1].innerHTML = this.CanvasNode.timeChange(this.saveto.length/60);
+        this.videoTimedisplay[1].innerHTML = timeChange(this.saveto.length/60);
         this.progressoafter.style.width = "0px";
         this.videoIndex = "canvas";
+        
     }
 
     saveBase64(){    //进行base64编码

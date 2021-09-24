@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script type="text/javascript">
+			window.onload=function(){
+				var mycolor='#000000';
+				//console.log(mycolor);
+				var Pixel=1;//像素宽度(画布)
+				var Canvas=document.getElementById("can");//通过ID查找canvas
+				var Canvasvir=document.getElementById("canvir");//虚拟画布
+				var tubes=document.getElementById("XG");//吸管id
+				var ctx=Canvas.getContext("2d");//
+				var ctxvir=Canvasvir.getContext("2d");//虚拟画布
+				//ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+				var index=false;//判断鼠标是否落下
+				let hstate=false;//直线画完状态
+				let opera=false;//直线是否可以操作
+				let buttonindex = "hb";
+				let disx,disy;
+				let vis=0;//记录每一次加载的元素
+				let type1 = '';
+				
+				//放大镜变量
+				let Mapower=1;//放大倍数
+				let imgx=0,imgy=0;
+				let centers={},centersl={};
+				let MINIMUM_ZOOM=1.0;
+				
+				ctx.lineJoin="round";//创建圆形边角
+				ctx.lineCap="round";//使结束的线段尾部变成圆形
+				reSet();//初始化画布
+				
+				
+				//鼠标落下(点击)时（基础画布）
+				Canvas.onmousedown=function(e){
+					
+				
+					switch(buttonindex){
+						case "xbc"://橡皮擦功能
+							this.style.cursor='crosshair';//橡皮擦光标样式
+							disx=e.offsetX;
+							disy=e.offsetY;
+							
+							ctx.fillStyle='#FFFFFF';
+							ctx.fillRect(disx,disy,5+Pixel,5+Pixel);//画一个填充的正方形
+							ctx.beginPath();
+							ctx.moveTo(disx,disy);
+							index=true;
+							vis=1;
+							break;
+							
+						case "yqt"://油漆桶功能
+							disx=e.offsetX;
+							disy=e.offsetY;
+							ctx.beginPath();
+							ctx.moveTo(disx,disy);
+							let ImageData=ctx.getImageData(0,0,Canvas.width,Canvas.height);//将像素矩阵从画布中提取出来
+							fillColor(ImageData,disx,disy,mycolor);//调用油漆桶函数
+							ctx.putImageData(ImageData,0,0);//将修改后的颜色数组导入到画布中
+							index=true;
+							vis=2;
+							break;
+							
+						case "xg"://吸管功能
+							disx=e.offsetX;
+							disy=e.offsetY;
+							ctx.beginPath();
+							ctx.moveTo(disx,disy);
+							//colorExtractor(e,tubes);
+							let RGB=colorExtractor(e,tubes);//调用吸管函数
+							ctx.fillStyle=RGB;
+							ctx.strokeStyle=RGB;
+							mycolor=ctx.fillStyle;
+							
+							if(vis==3){
+								buttonindex="hb";
+							}
+							else if(vis==2){
+								buttonindex="yqt";
+							}
+
+							index=true;
+							break;
+							
+						case "hb"://画笔功能
+							disx=e.offsetX;//记录鼠标下落时像素的x坐标
+							disy=e.offsetY;//记录鼠标下落时像素的y坐标
+							ctx.beginPath();
+							ctx.lineWidth=Pixel;
+							ctx.strokeStyle=mycolor;
+							ctx.moveTo(disx,disy);
+							
+							if(vis==5){
+								ctx.beginPath();
+								ctx.lineWidth=Pixel;
+								ctx.strokeStyle=mycolor;
+								ctx.moveTo(disxv1,disyv1);
+								ctx.lineTo(disxv2,disyv2);
+								ctx.stroke();
+							}
+							
+							index = true;
+							vis=3;
+							break;
+							
+						default:
+						break;
+					}
+				}
+				
+				//鼠标落下（点击）时（虚拟画布）
+				Canvasvir.onmousedown=function(e){
+					switch(buttonindex){
+						case "zx"://直线功能
+							
+								
+							if(hstate==true&&opera==false){//如果画完直线，并且不在操作状态，将虚拟画布直线映射到基础画布中
+								ctx.beginPath();
+								ctx.lineWidth=Pixel;
+								ctx.strokeStyle=mycolor;
+								ctx.moveTo(disxv1,disyv1);
+								ctx.lineTo(disxv2,disyv2);
+								ctx.stroke();
+								ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空虚拟画布
+								hstate=false;//禁止继续从这个原点绘制直线
+
+							}
+							else if(hstate==true&&opera==true){//如果画完直线，并且在操作状态（拉伸收缩）
+								if(type1 === 'end'){//如果双箭头在结束位置,则将起始点移到原点位置
+									mousedowns(disxv1,disyv1);
+								}
+								else if(type1 === 'first'){//如果双箭头在原点位置，则将起始点移到结束点位置
+									mousedowns(disxv2,disyv2);
+								}
+								else if(type1==='centers'){//如果移动箭头在直线间
+									disCenterx=e.offsetX;//记录鼠标点击时的坐标
+									disCentery=e.offsetY;
+									mousedowns(disCenterx,disCentery);
+								}
+				
+							}
+							else{//若还没开始绘制直线，则找到鼠标坐标作为原点，开始绘制直线
+							disxv1=e.offsetX;//记录鼠标下落时像素的x坐标
+							disyv1=e.offsetY;//记录鼠标下落时像素的y坐标
+							mousedowns(disxv1,disyv1);
+							}
+								
+						break;
+						
+						case 'jx'://矩形功能
+							if(hstate==true&&opera==false){//若画完一个矩形并且在不可操作状态时，将虚拟画布矩形映射到基础画布中
+								ctx.beginPath();
+								ctx.lineWidth=Pixel;
+								ctx.strokeStyle=mycolor;
+								ctx.strokeRect(disxv4,disyv4,distantsx,distantsy);
+								ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空虚拟画布
+								hstate=false;//禁止继续从这个原点绘制矩形
+							}
+							else if(hstate==true&&opera==true){
+								if(type1==='rightup'){//双箭头位于矩形右上角
+									mousedowns(disxv1,disyv2);
+								}
+								else if(type1==='rightdown'){//双箭头位于矩形右下角
+									mousedowns(disxv1,disyv1);
+								}
+								else if(type1==='leftup'){//双箭头位于矩形左上角
+									mousedowns(disxv2,disyv2);
+								}
+								else if(type1==='leftdown'){//双箭头位于矩形左下角
+									mousedowns(disxv2,disyv1);
+								}
+								else if(type1=='upCenter'){//双箭头位于矩形上边中点
+									disCenterx=e.offsetX;//记录鼠标点击时的坐标
+									disCentery=e.offsetY;
+									mousedowns(disxv1,disyv1);
+								}
+								else if(type1=='downCenter'){//双箭头位于矩形下边中点
+									mousedowns(disxv1,disyv1);
+								}
+								else if(type1=='leftCenter'){//双箭头位于矩形左边中点
+									mousedowns(disxv1,disyv1);
+								}
+								else if(type1=='rightCenter'){//双箭头位于矩形右边中点
+									mousedowns(disxv1,disyv1);
+								}
+								
+								else if(type1==='center'){
+									disCenterx=e.offsetX;//记录鼠标点击时的坐标
+									disCentery=e.offsetY;
+									mousedowns(disCenterx,disCentery);
+								}
+							}
+							else{//若还没开始绘制矩形，则找到鼠标坐标作为原点，开始绘制矩形
+							disxv1=e.offsetX;//记录鼠标下落时像素的x坐标
+							disyv1=e.offsetY;
+							mousedowns(disxv1,disyv1);
+							}
+							
+						break;
+						
+						case 'ty'://椭圆功能
+							if(hstate==true&&opera==false){//若画完一个椭圆并且在不可操作状态时，将虚拟画布椭圆映射到基础画布中
+								ctx.beginPath();
+								ctx.lineWidth=Pixel;
+								ctx.strokeStyle=mycolor;
+								ctx.ellipse(x,y,radiusX,radiusY,0 * Math.PI/180,0, 2 * Math.PI);
+								ctx.stroke();
+								ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空虚拟画布
+								hstate=false;//禁止继续从这个原点绘制椭圆
+							}
+							else if(hstate==true&&opera==true){
+								if(type1=='rightup'){
+									mousedowns(disxv1,disyv2);
+								}
+								else if(type1=='rightdown'){
+									mousedowns(disxv1,disyv1);
+								}
+								else if(type1=='leftup'){
+									mousedowns(disxv2,disyv2);
+								}
+								else if(type1=='leftdown'){
+									mousedowns(disxv2,disyv1);
+								}
+							}
+							else{//若还没开始绘制椭圆，则找到鼠标坐标作为原点，开始绘制椭圆
+							disxv1=e.offsetX;//记录鼠标下落时像素的x坐标
+							disyv1=e.offsetY;
+							mousedowns(disxv1,disyv1);
+							}
+							
+						break;
+						
+						default:
+						break;
+					}
+				}
+				
+				//鼠标移动时（基础画布）
+				Canvas.onmousemove=function(e){
+					if(index){
+						switch(buttonindex){
+							case "xbc"://橡皮擦功能
+								disx=e.offsetX;
+								disy=e.offsetY;
+								ctx.fillStyle='#FFFFFF';
+								ctx.fillRect(disx,disy,5+Pixel,5+Pixel);//画一个填充的正方形
+								ctx.lineTo(disx,disy);
+							break;
+								
+							case "hb"://画笔功能
+								disx2=e.offsetX;//记录鼠标移动后像素的x坐标
+								disy2=e.offsetY;//记录鼠标移动后像素的y坐标
+								ctx.lineTo(disx2,disy2);
+								ctx.stroke();//绘制路径	
+							break;
+							
+							default:
+							break;
+						}
+
+					}	
+					
+				}
+				
+				//当鼠标移动时（虚拟画布）
+				Canvasvir.onmousemove=function(e){
+					if(index){
+						switch(buttonindex){
+							case "zx"://直线功能
+								if(opera==true){//画完直线后操作直线
+									disxv3=e.offsetX;//记录鼠标移动后像素的x坐标
+									disyv3=e.offsetY;//记录鼠标移动后像素的y坐标
+									if(type1 === 'end'){//当双箭头在结束位置时	
+										ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清除上一条直线
+										ctxvir.beginPath();
+										ctxvir.lineWidth=Pixel;
+										ctxvir.strokeStyle=mycolor;
+										ctxvir.moveTo(disxv1,disyv1);
+										ctxvir.lineTo(disxv3,disyv3);
+										ctxvir.stroke();
+										disxv2 = disxv3;
+										disyv2 = disyv3;
+									}
+									else if(type1 === 'first'){//当双箭头在原点位置时
+										ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+										ctxvir.beginPath();
+										ctxvir.lineWidth=Pixel;
+										ctxvir.strokeStyle=mycolor;
+										ctxvir.moveTo(disxv3,disyv3);
+										ctxvir.lineTo(disxv2,disyv2);
+										ctxvir.stroke();
+										disxv1 = disxv3; 
+										disyv1 = disyv3;
+									}
+									else if(type1==='centers'){//如果移动箭头在直线间
+										ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+										difValuex=disxv3-disCenterx;//开始点和结束点x坐标差值
+										difValuey=disyv3-disCentery;//开始点和结束点y坐标差值
+										disCenterx=disxv3;//将上一次的结束点变成当下的起点
+										disCentery=disyv3;
+										disxv1+=difValuex;//鼠标移动多长距离，直线起始点也移动多长距离
+										disyv1+=difValuey;
+										disxv2+=difValuex;//鼠标移动多长距离，直线终点也移动多长距离
+										disyv2+=difValuey;
+										
+										ctxvir.beginPath();
+										ctxvir.lineWidth=Pixel;
+										ctxvir.strokeStyle=mycolor;
+										ctxvir.moveTo(disxv1,disyv1);
+										ctxvir.lineTo(disxv2,disyv2);
+										ctxvir.stroke();
+									}
+								}
+								else{//刚开始绘制一条直线
+									disxv2=e.offsetX;//记录鼠标移动后像素的x坐标
+									disyv2=e.offsetY;//记录鼠标移动后像素的y坐标
+									ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+									ctxvir.beginPath();
+									ctxvir.moveTo(disxv1,disyv1);
+									ctxvir.lineTo(disxv2,disyv2);
+									ctxvir.stroke();//绘制路径	
+									hstate=true;//表示画完一条直线
+								}
+							break;
+							
+							case 'jx'://矩形功能
+							if(opera===true){
+								disxv3=e.offsetX;//记录鼠标移动后像素的x坐标
+								disyv3=e.offsetY;//记录鼠标移动后像素的y坐标
+								if(type1==='rightup'){//双箭头位于矩形右上角
+									rectExpansion(disxv1,disyv2,disxv3,disyv3);//调用矩形伸缩函数
+									disxv2 = disxv3;//将上一次结束点移动到当前结束点
+									disyv1 = disyv3;
+									disxv4=disxv1;//将矩形各个角初始点统一定义为v4
+									disyv4=disyv2;
+								
+								}
+								else if(type1==='rightdown'){//双箭头位于矩形右下角
+									rectExpansion(disxv1,disyv1,disxv3,disyv3);
+									disxv2 = disxv3;//将上一次结束点移动到当前结束点
+									disyv2 = disyv3;
+									disxv4=disxv1;
+									disyv4=disyv1;
+								}
+								else if(type1==='leftup'){//双箭头位于矩形左上角
+									rectExpansion(disxv2,disyv2,disxv3,disyv3);
+									disxv1 = disxv3;//将上一次结束点移动到当前结束点
+									disyv1 = disyv3;
+									disxv4=disxv2;
+									disyv4=disyv2;
+								}
+								else if(type1==='leftdown'){//双箭头位于矩形左下角
+									rectExpansion(disxv2,disyv1,disxv3,disyv3);
+									disxv1 = disxv3;//将上一次结束点移动到当前结束点
+									disyv2 = disyv3;
+									disxv4=disxv2;
+									disyv4=disyv1;
+								}
+								else if(type1=='upCenter'){//双箭头位于矩形上边中点
+									ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空上一个矩形
+									difValuex = disxv3-disCenterx;
+									difValuey=disyv3-disCentery;//移动后的点与初始点击 点的差值
+									disCenterx=disxv3;//将初始点击的点移动到当前结束点
+									disCentery=disyv3;
+									disyv1+=difValuey;//初始点y加上差值
+									distantsy=Math.abs(disyv2-disyv1);//计算矩形长度
+									distantsx=Math.abs(disxv2-disxv1);
+									ctxvir.beginPath();
+									ctxvir.lineWidth=Pixel;
+									ctxvir.strokeStyle=mycolor;
+									ctxvir.strokeRect(Math.min(disxv1,disxv2),Math.min(disyv2,disyv1),distantsx,distantsy);//绘制矩形
+									disxv4=disxv1;//将矩形各个角初始点统一定义为v4
+									disyv4=disyv1;
+									
+									/*distantsy=Math.abs(disyv3-disyv2);//开始点和结束点y坐标差值
+									ctxvir.beginPath();
+									ctxvir.lineWidth=Pixel;
+									ctxvir.strokeStyle=mycolor;
+										ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+										disyv1=disyv3;//将上一次结束y点移动到当前结束y点
+										disxv4=disxv1;//将矩形各个角初始点统一定义为v4
+										disyv4=disyv1;
+									
+									//console.log(distantsx,distantsy);
+									//console.log(disxv1,disyv1);
+									// console.log(disxv3,disyv3);*/
+									
+									
+									
+								}
+								else if(type1=='downCenter'){//双箭头位于矩形下边中点
+									ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空上一个矩形
+									distantsy=Math.abs(disyv3-disyv1);//开始点和结束点y坐标差值
+									ctxvir.beginPath();
+									ctxvir.lineWidth=Pixel;
+									ctxvir.strokeStyle=mycolor;
+									ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+									//console.log(distantsx,distantsy);
+									//console.log(disxv1,disyv1);
+									disyv2=disyv3;
+									disxv4=disxv1;
+									disyv4=disyv1;
+								}
+								else if(type1=='leftCenter'){//双箭头位于矩形左边中点
+									ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空上一个矩形
+									distantsx=Math.abs(disxv3-disxv2);//开始点和结束点y坐标差值
+									ctxvir.beginPath();
+									ctxvir.lineWidth=Pixel;
+									ctxvir.strokeStyle=mycolor;
+									ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+									disxv1=disxv3;
+									disxv4=disxv1;
+									disyv4=disyv1;
+								}
+								else if(type1=='rightCenter'){//双箭头位于矩形右边中点
+									ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空上一个矩形
+									distantsx=Math.abs(disxv3-disxv1);//开始点和结束点y坐标差值
+									ctxvir.beginPath();
+									ctxvir.lineWidth=Pixel;
+									ctxvir.strokeStyle=mycolor;
+									ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+									disxv2=disxv3;
+									disxv4=disxv1;
+									disyv4=disyv1;
+								}
+								else if(type1==='center'){
+									ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+									difValuex=disxv3-disCenterx;//开始点和结束点x坐标差值
+									difValuey=disyv3-disCentery;//开始点和结束点y坐标差值
+									disCenterx=disxv3;//将上一次的结束点变成当下的起点
+									disCentery=disyv3;
+									disxv4+=difValuex;//鼠标移动多长距离，矩形起始点也移动多长距离
+									disyv4+=difValuey;
+									disxv1+=difValuex;//鼠标移动多长距离，各个点也移动多长距离
+									disyv1+=difValuey;
+									disxv2+=difValuex;
+									disyv2+=difValuey;
+									
+									ctxvir.beginPath();
+									ctxvir.lineWidth=Pixel;
+									ctxvir.strokeStyle=mycolor;
+									ctxvir.strokeRect(disxv4,disyv4,distantsx,distantsy);
+									
+									
+								}
+							}
+							else{//刚开始绘制一个矩形
+								disxv2=e.offsetX;//记录鼠标移动后像素的x坐标
+								disyv2=e.offsetY;
+								distantsx=disxv2-disxv1;//结束点与起始点的差值，表示矩形边长
+								distantsy=disyv2-disyv1;
+								ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+								ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+								disxv4=disxv1;//将矩形各个角初始点统一定义为v4
+								disyv4=disyv1;
+								console.log(disxv1,disyv1);
+								hstate=true;//表示画完一个矩形
+							}
+								
+							break;
+							
+							case 'ty'://椭圆功能
+							if(opera==true){
+								disxv3=e.offsetX;//记录鼠标移动后像素的x坐标
+								disyv3=e.offsetY;//记录鼠标移动后像素的y坐标
+								if(type1=='rightup'){
+									ellipseExpansion(disxv1,disyv2,disxv3,disyv3);//调用椭圆伸缩函数
+									disxv2=disxv3;
+									disyv1=disyv3;
+								}
+								else if(type1=='rightdown'){
+									ellipseExpansion(disxv1,disyv1,disxv3,disyv3);//调用椭圆伸缩函数
+									disxv2=disxv3;
+									disyv2=disyv3;
+								}
+								else if(type1=='leftup'){
+									ellipseExpansion(disxv2,disyv2,disxv3,disyv3);//调用椭圆伸缩函数
+									disxv1=disxv3;
+									disyv1=disyv3;
+								}
+								else if(type1=='leftdown'){
+									ellipseExpansion(disxv2,disyv1,disxv3,disyv3);//调用椭圆伸缩函数
+									disxv1=disxv3;
+									disyv2=disyv3;
+								}
+							}
+							else{//刚开始绘制一个椭圆
+								disxv2=e.offsetX;//记录鼠标移动后像素的x坐标
+								disyv2=e.offsetY;
+								ellipseExpansion(disxv1,disyv1,disxv2,disyv2);//调用椭圆函数
+								hstate=true;//表示画完一个椭圆
+							}
+							break;
+							
+							default:
+							break;
+						}
+					}
+					else{
+						switch(buttonindex){
+							case "zx"://直线功能(直线两端伸缩)
+								if(hstate){
+									Lscalx=e.offsetX;//记录当前坐标
+									Lscaly=e.offsetY;
+										dline1=towLineDistance(disxv2,disyv2,Lscalx,Lscaly);//两点间距离（当前点和结束点）
+										dline2=towLineDistance(disxv1,disyv1,Lscalx,Lscaly);//两点间距离（当前点和原点）
+										dline3=pointToLine(disxv1,disyv1,disxv2,disyv2,Lscalx,Lscaly);//点到直线距离
+									
+									if(dline1<=8){//双箭头光标（位于结束点）
+										this.style.cursor='n-resize';
+										opera=true;//可操作（伸缩）状态
+										type1 = 'end';
+									}
+									else if(dline2<=8){//双箭头光标（位于原点）
+										this.style.cursor='n-resize';
+										opera=true;
+										type1 = 'first';
+									}
+									else if(dline3<=8){//移动光标
+										this.style.cursor='move';
+										opera=true;
+										type1 = 'centers';
+									}
+									else{
+										this.style.cursor = 'default';
+										opera=false;
+										type1 = '';
+									}
+								}
+							break;
+							
+							case 'jx'://矩形功能（伸缩）
+								if(hstate){
+									Lscalx=e.offsetX;//记录当前坐标
+									Lscaly=e.offsetY;
+									dlinerup=towLineDistance(disxv2,disyv1,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形右上角）
+									dlinerdn=towLineDistance(disxv2,disyv2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形右下角）
+									dlinelup=towLineDistance(disxv1,disyv1,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形左上角）
+									dlineldn=towLineDistance(disxv1,disyv2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形左下角）
+									dlineupC=towLineDistance((disxv2+disxv1)/2,disyv1,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形上边中点）
+									dlinedownC=towLineDistance((disxv2+disxv1)/2,disyv2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形下边中点）
+									dlineleftC=towLineDistance(disxv1,(disyv2+disyv1)/2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形左边中点）
+									dlinerightC=towLineDistance(disxv2,(disyv2+disyv1)/2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（矩形右边中点）
+									
+									if(dlinerup<=8){//双箭头光标（位于矩形右上角） 
+										this.style.cursor='ne-resize';
+										opera=true;//可操作（伸缩）状态
+										type1='rightup';
+									}
+									else if(dlinerdn<=8){//双箭头光标（位于矩形右下角）
+										this.style.cursor='nw-resize';
+										opera=true;
+										type1='rightdown';
+									}
+									else if(dlinelup<=8){//双箭头光标（位于矩形左上角）
+										this.style.cursor='nw-resize';
+										opera=true;
+										type1='leftup';
+									}
+									else if(dlineldn<=8){//双箭头光标（位于矩形左下角）
+										this.style.cursor='ne-resize';
+										opera=true;
+										type1='leftdown';
+									}
+									else if(dlineupC<=8){//双箭头光标（位于矩形上边中点）
+										this.style.cursor='n-resize';
+										opera=true;
+										type1='upCenter';
+									}
+									else if(dlinedownC<=8){//双箭头光标（位于矩形下边中点）
+										console.log('down')
+										this.style.cursor='n-resize';
+										opera=true;
+										type1='downCenter';
+									}
+									else if(dlineleftC<=8){//双箭头光标（位于矩形左边中点）
+										this.style.cursor='e-resize';
+										opera=true;
+										type1='leftCenter';
+									}
+									else if(dlinerightC<=8){//双箭头光标（位于矩形右边中点）
+										this.style.cursor='e-resize';
+										opera=true;
+										type1='rightCenter';
+									}
+									else if(Lscalx>disxv1&&Lscalx<disxv2&&Lscaly>disyv1&&Lscaly<disyv2){//移动光标位于矩形内部
+										this.style.cursor='move';
+										opera=true;
+										type1 = 'center';
+									}
+									else{
+										this.style.cursor = 'default';
+										opera=false;
+										type1='';
+									}
+									
+								}
+							break;
+							
+							case 'ty'://椭圆功能（伸缩）
+								if(hstate){
+									Lscalx=e.offsetX;//记录当前坐标
+									Lscaly=e.offsetY;
+									dlinerup=towLineDistance(disxv2,disyv1,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（椭圆右上角）
+									dlinerdn=towLineDistance(disxv2,disyv2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（椭圆右下角）
+									dlinelup=towLineDistance(disxv1,disyv1,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（椭圆左上角）
+									dlineldn=towLineDistance(disxv1,disyv2,Lscalx,Lscaly);//两点间距离（鼠标当前点和结束点）（椭圆左下角）
+									if(dlinerup<=8){
+										this.style.cursor='ne-resize';
+										opera=true;
+										type1='rightup';
+									}
+									else if(dlinerdn<=8){
+										this.style.cursor='nw-resize';
+										opera=true;
+										type1='rightdown';
+									}
+									else if(dlinelup<=8){
+										this.style.cursor='nw-resize';
+										opera=true;
+										type1='leftup';
+									}
+									else if(dlineldn<=8){
+										this.style.cursor='ne-resize';
+										opera=true;
+										type1='leftdown';
+									}
+									else{
+										this.style.cursor = 'default';
+										opera=false;
+										type1='';
+									}
+								}
+							break; 
+							
+							default:
+							break;
+						}
+					}
+				}
+				
+				
+				//鼠标抬起时（基础画布）
+				Canvas.onmouseup=function(){
+					index=false;
+					
+				}
+				
+				//鼠标抬起时（虚拟画布）
+				Canvasvir.onmouseup=function(e){
+						index=false;
+						if(hstate==true){
+							switch(buttonindex){
+								case 'ty'://椭圆虚线功能
+									ctxvir.save();
+									ctxvir.beginPath();
+									ctxvir.lineWidth=1;
+									ctxvir.strokeStyle='#1e90ff';
+									distantsx=disxv2-disxv1;//结束点与起始点的差值，表示矩形边长
+									distantsy=disyv2-disyv1;
+									ctxvir.setLineDash([3]);//剪切直线
+									ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+									ctxvir.restore();
+								break;
+								
+								case 'jx':
+									//[disxv1,disyv1,disxv2,disyv2]=[Math.min(disxv1,disxv2),Math.min(disyv1,disyv2),Math.max(disxv1,disxv2),Math.max(disyv1,disyv2)];
+								break;
+								
+								/*case 'jx':
+									ctxvir.save();
+									ctxvir.beginPath();
+									ctxvir.lineWidth=1;
+									ctxvir.strokeStyle='#1e90ff';
+									distantsx=disxv2-disxv1;//结束点与起始点的差值，表示矩形边长
+									distantsy=disyv2-disyv1;
+									ctxvir.setLineDash([3]);//剪切直线
+									ctxvir.strokeRect(disxv1,disyv1,distantsx,distantsy);
+									ctxvir.restore();
+								break;*/
+							}
+						}
+					[disxv1,disyv1,disxv2,disyv2]=[Math.min(disxv1,disxv2),Math.min(disyv1,disyv2),Math.max(disxv1,disxv2),Math.max(disyv1,disyv2)];
+				}
+				
+
+
+				//函数
+				
+				//油漆桶函数
+				function rgbToGray(r,g,b){
+					return r*0.299+g*0.587+b*0.114;
+				}
+				
+				function fillColor(ImageData,x,y,color){
+					let {width,height,data}=ImageData;
+					let [R,G,B]=color.substring(1).match(/[a-fA-F\d]{2}/g);//正则，返回RGB三个构成的数组
+					//console.log(color);
+					R=Number.parseInt(R,16);
+					G=Number.parseInt(G,16);
+					B=Number.parseInt(B,16);
+					x=Math.floor(x);//向下取整
+					y=Math.floor(y);
+					let index=(y*width+x)*4;//寻找RGB位置索引，一个3*3画布共9个像素点，一个像素点占4个空间
+					let grayLevel=rgbToGray(data[index],data[index+1],data[index+2]);//转化为灰度值
+					let mark=Array.from({length:height},x=>Array.from({length:width},y=>0));//访问标记，填充这个数组
+					let move_dir=[[0,1],[1,0],[0,-1],[-1,0]];//广搜方向
+					let queue=[{x,y}];//创建队列
+					mark[y][x]=1;//用来检查是否已经访问过
+					
+					while(queue.length>0){      //光度搜索附近颜色相似像素
+						let pop=queue.shift();//用于弹出队列元素
+						index=(pop.y*width+pop.x)*4;
+						data[index]=R;
+						data[index+1]=G;
+						data[index+2]=B;
+						for(let i of move_dir){
+							let x1=pop.x+i[0];
+							let y1=pop.y+i[1];
+							index=(y1*width+x1)*4;
+							let grayColor2=rgbToGray(data[index],data[index+1],data[index+2]);
+							if(x1>=0 && y1>=0 && x1<width && y1<height && !mark[y1][x1] && grayColor2-20<=grayLevel && grayColor2+20>=grayLevel){
+								mark[y1][x1]=1;
+								queue.push({x:x1,y:y1});
+							}
+						}
+					}
+					
+				}
+				
+				//吸管函数
+				function colorExtractor(event,color_xg){
+					let x=event.layerX;
+					let y=event.layerY;
+					let ImageData_xg=ctx.getImageData(x,y,1,1);//获取画布像素信息
+					let data=ImageData_xg.data;
+					let rgba=`rgba(${data[0]}, ${data[1]}, ${data[2]}, ${data[3] / 255})`;
+					color_xg.style.backgroundColor=rgba;
+					return rgba;
+				}
+				
+				//初始化画布函数
+				function reSet(){	//重置画布
+					ctx.save();
+					ctx.fillStyle="#FFFFFF";
+					ctx.fillRect(0,0,Canvas.width,Canvas.height);
+					ctx.restore();
+				}
+				
+				
+				//椭圆函数
+				if(!CanvasRenderingContext2D.prototype.ellipse){
+					CanvasRenderingContext2D.prototype.ellipse=function(x,y,radiusX,radiusY,rotation,startAngle,endAngle,anticlockwise){
+						var r=radiusX>radiusY ? radiusX:radiusY;//用大的数为半径
+						var scaleX = radiusX / r; //计算缩放的x轴比例
+						var scaleY = radiusY / r; //计算缩放的y轴比例
+						this.save(); //保存副本                    
+						this.translate(x, y); //移动到圆心位置
+						this.rotate(rotation); //进行旋转
+						this.scale(scaleX, scaleY); //进行缩放
+						this.arc(0, 0, r, startAngle, endAngle, anticlockwise); //绘制圆形
+						this.restore(); //还原副本
+					}
+				}
+				
+				//椭圆伸缩功能函数（鼠标移动时）
+				function ellipseExpansion(beginx,beginy,endx,endy){//参数：起始点x、起始点y、鼠标移动后的点x、鼠标移动后的点y(一般来说是disxv3,disyv3)，上一个结束点x、上一个结束点y
+					x=(beginx+endx)/2;//圆心x坐标
+					y=(beginy+endy)/2;//圆心y坐标
+					radiusX=Math.abs((endx-beginx)/2);//长半径
+					radiusY=Math.abs((endy-beginy)/2);//短半径
+					ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);
+					ctxvir.beginPath();
+					ctxvir.ellipse(x,y,radiusX,radiusY,0 * Math.PI/180,0,2 * Math.PI);//调用椭圆函数
+					ctxvir.stroke();
+				}
+				
+				//矩形伸缩功能函数（鼠标移动时）
+				function rectExpansion(beginx,beginy,endx,endy){//参数：起始点x、起始点y、鼠标移动后的点x、鼠标移动后的点y(一般来说是disxv3,disyv3)
+					ctxvir.clearRect(0,0,Canvasvir.width,Canvasvir.height);//清空上一个矩形
+					ctxvir.beginPath();
+					ctxvir.lineWidth=Pixel;
+					ctxvir.strokeStyle=mycolor;
+					distantsx=endx-beginx;//结束点与起始点的差值，表示矩形边长
+					distantsy=endy-beginy;
+					ctxvir.strokeRect(beginx,beginy,distantsx,distantsy);//绘制矩形
+				}
+				
+				//两点间距离公式函数
+				function towLineDistance(x1,y1,x2,y2){
+					let inners=(x2-x1)*(x2-x1)+(y2-y1)*(y2-y1);//两点间距离公式，根号内部表达式
+					dline=Math.sqrt(inners);//两点间距离（鼠标当前点和结束点）
+					return dline;
+				}
+				
+				//点到直线距离公式
+				function pointToLine(x1,y1,x2,y2,x0,y0){
+					let k=(y2-y1)/(x2-x1);//斜率k（点到直线距离公式）
+					let b=y1-(k*x1);
+						dline=Math.abs(k*x0-y0+b)/Math.sqrt(k*k+1);//点到直线距离
+						return dline;
+				}
+				
+				//鼠标点击时函数（找到鼠标点击时坐标）
+				function mousedowns(beginx,beginy){
+					ctxvir.beginPath();
+					ctxvir.lineWidth=Pixel;
+					ctxvir.strokeStyle=mycolor;
+					ctxvir.moveTo(beginx,beginy);
+					index=true;
+				}
+				
+				
+				
+				
+				document.querySelectorAll('input').forEach((e)=>{
+					e.addEventListener('click',function(){
+						Canvasvir.style.zIndex = 1;
+						switch(e.value){
+							case '直线':{
+								Canvasvir.style.zIndex = 5;//使虚拟画布浮到最上层
+								buttonindex="zx";
+							}break;
+							
+							case '+'://像素+
+								Pixel++;
+							break;
+							
+							case '-'://像素-
+							if(Pixel>1){
+								Pixel--;
+							}
+							break;
+							
+							case '白色':
+								mycolor='#ffffff';
+								buttonindex="hb";
+								Canvas.style.cursor='default';//鼠标光标类型
+							break;
+							
+							case '红色':
+								mycolor='#ff0000';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+							
+							case '橙色':
+								mycolor='#ffa500';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+							
+							case '黄色':
+								mycolor='#ffff00';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+							
+							case '绿色':
+								mycolor='#008000';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+							
+							case '蓝色':
+								mycolor='#0000ff';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+							
+							case '紫色':
+								mycolor='#800080';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+								
+							case '粉色':
+								mycolor='#ffc0cb';
+								buttonindex="hb";
+								Canvas.style.cursor='default';
+							break;
+							
+							case '橡皮':
+								buttonindex = "xbc";
+							break;
+							
+							case '油漆桶':
+								buttonindex="yqt";
+							break;
+							
+							case '吸管':
+								buttonindex="xg";
+							break;
+							
+							case '矩形':
+								Canvasvir.style.zIndex = 5;
+								buttonindex="jx";
+							break;
+							
+							case '椭圆':
+								Canvasvir.style.zIndex = 5;
+								buttonindex="ty";
+							break;
+							
+							default:
+							break;
+							
+						}
+					})
+				})
+					
+				
+				
+			}
+		</script>
+	</head>
+	<body>
+		<div style="height: 600px;">
+			<canvas id="can" width="1360" height="600"></canvas>
+			<canvas id="canvir" width="1360" height="600"></canvas>	
+		</div>
+		<div>
+			<input type="button" value="+" />
+			<input type="button" value="-" />
+			<input type="button" value="白色"/>
+			<input type="button" value="红色"/>
+			<input type="button" value="橙色"/>
+			<input type="button" value="黄色"/>
+			<input type="button" value="绿色"/>
+			<input type="button" value="蓝色"/>
+			<input type="button" value="紫色"/>
+			<input type="button" value="粉色"/>
+			<input type="button" value="橡皮"/>
+			<input type="button" value="油漆桶"/>
+			<input type="button" id="XG" value="吸管"/>
+			<input type="button" value="编辑颜色" />
+			<input type="button" value="放大镜"/>
+			<input type="button" value="直线"/>
+			<input type="button" value="矩形"/>
+			<input type="button" value="椭圆"/>
+			<span id="Wait" style="cursor: wait;">wait</span>
+		</div>
+			
+	</body>
+	
+	<style type="text/css">
+		*{
+			padding: 0;
+			margin: 0;
+		}
+		body{
+			width: 100%;
+			height: 100%;
+			background: black;
+		}
+		#can{
+			background: #fff;
+			position: absolute;
+			overflow: scroll;
+			z-index: 2;
+		}
+		#canvir{
+			position: absolute;
+			overflow: scroll;
+			z-index: 1;
+		}
+		input{
+			width: 60px;
+			height: 40px;
+			font-size: 1.25rem;
+		}
+		body>div{
+			display: flex;
+		}
+	</style>
+</html>

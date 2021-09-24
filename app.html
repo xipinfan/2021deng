@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./css/iconfont.css">
     <link rel="stylesheet" href="./css/app.css">
     <title>Document</title>
 </head>
@@ -86,6 +85,7 @@
                             <use xlink:href="#icon-xiazai"></use>
                         </svg>
                     </li>
+                    
                     <li title="缩小" class="toggle-control">
                         <svg class="icon" aria-hidden="true">
                             <use xlink:href="#icon-icon--1"></use>
@@ -191,10 +191,113 @@
                 </div>
             </div>
         </main>
-        <footer style="text-align: center;">
-            <span>诶嘿</span>
+        <footer>
+            <span>1</span>
+            *
+            <span>1</span>px
+            <div id="x1">X: <span>0</span></div>
+            <div id="y1">Y: <span>0</span></div>
         </footer>
     </div>
+
+    <dialog id="warning">
+        <div class="model">
+			<div class="model-header">
+				<span>警告框</span>
+				<span class="close">×</span>
+			</div>
+			<div class="splitter-right"></div>
+			<div class="model-content">
+				<p>是否将当前画布重置为白板</p>
+			</div>
+			<div class="model-footer">
+				<button  value="cancel">取&nbsp;消</button>
+				<button>确&nbsp;定</button>
+			</div>
+		</div>
+    </dialog>
+
+    <dialog id="inputUrl">
+        <div class="model">
+			<div class="model-header">
+				<span>打开图像网址</span>
+				<span class="close">×</span>
+			</div>
+			<div class="splitter-right"></div>
+			<div class="model-content">
+				<input type="text" placeholder="在此处输入图片链接">
+			</div>
+			<div class="model-footer">
+				<button  value="cancel">取&nbsp;消</button>
+				<button>确&nbsp;定</button>
+			</div>
+		</div>
+    </dialog>
+
+    <dialog id="saveToImage">
+        <div class="model">
+			<div class="model-header">
+				<span>下载图片</span>
+				<span class="close">×</span>
+			</div>
+			<div class="splitter-right"></div>
+			<div class="model-content">
+                <div>
+                    <div>文件名称</div>
+                </div>
+                <div id="inputTextpng">
+                    <input type="text" placeholder="在此处输入文件名称">.png
+                </div>
+                <div id="model-content-input">
+                    <div>
+                        <label for="save-w">图像宽度</label>
+                        <input type="number" id="save-w" min="0" value="0" disabled />    
+                    </div>
+                    <div>
+                        <label for="save-h">图像高度</label>
+                        <input type="number" id="save-h" min="0" value="0" disabled />  
+                    </div>    
+                </div>
+            </div>
+			<div class="model-footer"> 
+				<button  value="cancel">取&nbsp;消</button>
+				<button>确&nbsp;定</button>
+			</div>
+		</div>
+    </dialog>
+
+    <dialog id="saveToGif">
+        <div class="model">
+			<div class="model-header">
+				<span>下载图片</span>
+				<span class="close">×</span>
+			</div>
+			<div class="splitter-right"></div>
+			<div class="model-content">
+                <div>
+                    <div>文件名称</div>
+                </div>
+                <div id="inputTextpng">
+                    <input type="text" placeholder="在此处输入文件名称">.gif
+                </div>
+                <div id="model-content-input">
+                    <div>
+                        <label for="save-w">图像宽度</label>
+                        <input type="number" id="save-w" min="0" value="0" disabled />    
+                    </div>
+                    <div>
+                        <label for="save-h">图像高度</label>
+                        <input type="number" id="save-h" min="0" value="0" disabled />  
+                    </div>    
+                </div>
+            </div>
+			<div class="model-footer"> 
+				<button  value="cancel">取&nbsp;消</button>
+				<button>确&nbsp;定</button>
+			</div>
+		</div>
+    </dialog>
+
     <template id="txbh-template">
 		<div id="txhb-panel" class="panel">
 			<div>
@@ -332,22 +435,64 @@
 		<div id="xzgj-panel" class="panel">
             <!-- &nbsp;&nbsp; -->
 			<div>
-				<span>绘制直线</span>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-line"></use>
+                    </svg>
+                    &nbsp;&nbsp;绘制直线
+                </span>
 			</div>
 			<div>
-				<span>绘制圆形</span>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-circle"></use>
+                    </svg>
+                    &nbsp;&nbsp;绘制圆形
+                </span>
 			</div>
             <div>
-				<span>绘制矩形</span>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-rect"></use>
+                    </svg>
+                    &nbsp;&nbsp;绘制矩形
+                </span>
 			</div>
 			<div>
-				<span>绘制直角三角形</span>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-zhijiao-triangle"></use>
+                    </svg>
+                    &nbsp;&nbsp;绘制直角三角形
+                </span>
 			</div>
             <div>
-				<span>绘制等腰三角形</span>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-zheng-triangle"></use>
+                    </svg>
+                    &nbsp;&nbsp;绘制等腰三角形
+                </span>
 			</div>
             <div>
-				<span>绘制菱形</span>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-lingxing"></use>
+                    </svg>
+                    &nbsp;&nbsp;绘制菱形
+                </span>
+			</div>
+		</div>
+	</template>
+    <template id="czhb-template">
+		<div id="czhb-panel" class="panel">
+			<div>
+				<span>
+                    <svg class="icon" aria-hidden="true" style="font-size: 15px;">
+                        <use xlink:href="#icon-tx-fill-changfangxing"></use>
+                    </svg>
+                    &nbsp;&nbsp;重置为白板
+                </span>
 			</div>
 		</div>
 	</template>
@@ -359,6 +504,8 @@
     let w = cc.getBoundingClientRect().width;
     cc.style.height = h + 'px';
     cc.style.width = w + 'px';
+    document.querySelector("#main-content").className = "items-class";
+
     let mainNav = document.querySelectorAll("#main-nav>ul>li");
     let mainPanel = document.querySelectorAll("#main-panel")[0];
     let mainPanelcontent = document.querySelector("#main-panel-content");
@@ -398,7 +545,10 @@
             }
             case "形状工具":{
                 t = document.getElementById("xzgj-template");
-
+                break;
+            }
+            case "重置画板":{
+                t = document.getElementById("czhb-template");
                 break;
             }
         }
@@ -413,10 +563,52 @@
                         indexXzgj = this;
                     }
                 })
-                console.log(e);
             })
         }
     }
+    let warning = document.getElementById("warning");
+    let inputUrl = document.getElementById("inputUrl");
+    let saveToImage = document.getElementById("saveToImage");
+    let saveToGif = document.getElementById("saveToGif");
+
+    document.querySelectorAll("#warning .model-header>span.close")[0].addEventListener("click",  function(){
+        warning.close();
+    });
+	document.querySelectorAll("#warning .model-footer>button")[0].addEventListener("click", function(){
+        warning.close();
+    });
+    document.querySelectorAll("#inputUrl .model-header>span.close")[0].addEventListener("click",  function(){
+        inputUrl.close();
+    });
+	document.querySelectorAll("#inputUrl .model-footer>button")[0].addEventListener("click", function(){
+        inputUrl.close();
+    });
+    document.querySelectorAll("#saveToImage .model-header>span.close")[0].addEventListener("click",  function(){
+        saveToImage.close();
+    });
+	document.querySelectorAll("#saveToImage .model-footer>button")[0].addEventListener("click", function(){
+        saveToImage.close();
+    });
+    document.querySelectorAll("#saveToGif .model-header>span.close")[0].addEventListener("click",  function(){
+        saveToGif.close();
+    });
+	document.querySelectorAll("#saveToGif .model-footer>button")[0].addEventListener("click", function(){
+        saveToGif.close();
+    })
+
+    document.getElementById("saveImage").addEventListener("click",function(){
+        saveToImage.showModal();
+    })
+    document.getElementById("white").addEventListener('click',function(){
+        warning.showModal();
+    })
+    document.getElementById("openUrl").addEventListener('click',function(){
+        inputUrl.showModal();
+    })
+    document.getElementById("saveGIFImage").addEventListener('click',function(){
+        saveToGif.showModal();
+    })
+
     mainNav.forEach((e)=>{
         e.addEventListener("click",function(em){
             mainPaneltitle.innerHTML = this.title;
@@ -483,4 +675,5 @@
     })
 
 </script>
+<script type="module" src="./js/in.js"></script>
 </html>

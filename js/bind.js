@@ -402,7 +402,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
         let colorchoice = document.querySelector("input[type=color]");   //获取颜色选择器
         let colorto = document.querySelector('#rgb');    //获取展示项
         that.base = false;
-        colorto.innerText = "RGB(0,0,0)";
+        colorto.innerText = "RGB(0,0,0)"
         document.querySelectorAll("#buttonLayout>button").forEach((element,index)=>{
             switch(element.id){
                 case 'white':
@@ -465,7 +465,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                     })
             }
         })
-        this.textinput = this.textarea.addEventListener("input", function(e){
+        this.textarea.addEventListener("input", function(e){
             clearInterval(that.timeto);
             if(that.textDottedLine.beginLine !== undefined){
                 that.textValue = this.value;
@@ -552,10 +552,6 @@ class Bind extends Tools{    //绑定事件类，继承主类
                             that.directionIndex += 2;
                             shapeFlip( {x: middle.x + x , y: middle.y + y}, {x: middle.x - x , y: middle.y - y} );
                             break;
-                        case "flip":
-                            console.log("翻转图像导致的问题太多，以至于移动什么的都无法实现，只能取消");
-                            let d = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
-                            break;  
                     }    
                     
                 }
@@ -722,7 +718,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                         stay = that.ImageLayerNode.spotLineDistance(beginLine, endLine, {x:e.layerX,y:e.layerY});
                         break;
                     default:
-                        stay = that.ImageLayerNode.boundary(that.canvasDemo, e, firstplot, endplot, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);;
+                        stay = that.ImageLayerNode.boundary(that.canvasDemo, e, firstplot, endplot, that.ImageLayerNode.lineDistance, that.ImageLayerNode.pointToLine);
                 }  
                 if(stay !== "default"){    
                     beginmobile.x = e.layerX;    //记录初始点
@@ -961,7 +957,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                         break;
                                     case "lowerleft":
                                         endplot.x += endmobile.x;
-                                        endplot.y += endmobile.y;                                
+                                        endplot.y += endmobile.y;
                                         break;
                                     case "topright":
                                         firstplot.x += endmobile.x;
@@ -982,7 +978,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                         break;
                                     case "lowerleft":
                                         endplot.x += endmobile.x;
-                                        firstplot.y += endmobile.y;                                  
+                                        firstplot.y += endmobile.y;
                                         break;
                                     case "topright":
                                         firstplot.x += endmobile.x;
@@ -1003,7 +999,7 @@ class Bind extends Tools{    //绑定事件类，继承主类
                                         break;
                                     case "lowerleft":
                                         firstplot.x += endmobile.x;
-                                        firstplot.y += endmobile.y;                                
+                                        firstplot.y += endmobile.y;
                                         break;
                                     case "topright":
                                         endplot.x += endmobile.x;
