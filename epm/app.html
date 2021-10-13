@@ -63,6 +63,7 @@
                         <ul class="nav-sub" id="video">
                             <li id="addsubtitle">添加字幕</li>
                             <li id="bulletchat">添加弹幕</li>
+                            <li id="addText">添加文字</li>
                             <li id="intercept">截取当前帧</li>
                         </ul>
                     </li>
@@ -205,14 +206,36 @@
                     </div>
                     <span class="timedisplay">00:99</span>
                 </div>
-                
+ 
             </div>
             <div id="main-right">
-                <div class="buttonLayer" style="display: none;">
+                <div class="buttonLayer">
                     <input type="button" value="导入图片">
                     <input type="button" value="导入视频">
-                    <input type="text" placeholder="输入想要素材关键字">
+                    <div>
+                        <select name="" id="" title="默认模板">
+                            <option value="无"></option>
+                        </select>
+                        <input id="searchImage" type="text" placeholder="输入想要素材关键字">
+                    </div>
                     <input type="button" value="搜索素材">
+                    <div id="gridLayer">
+                        <img draggable="true" src="https://www.doutula.com/material/v10/身体/熊猫人/a1.png" alt="没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="真的没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="真的没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="是真的没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="是真的没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="？？都说了没了" height="100px" width="100px">
+                        <img draggable="true" src="https://doutula-oss1.oss-ap-southeast-1.aliyuncs.com/production/uploads/image/2020/02/03/20200203738933_AIpgHD.jpg" alt="？？都说了没了" height="100px" width="100px">    
+                    </div>
+                    <div id="turnPages">
+                        <button name="homepage"><<</button>
+                        <button name="previouspage"><</button>
+                        <div>1</div>
+                        <button name="nextpage">></button>
+                        <button name="lastpage">>></button>
+                    </div>
                 </div>
                 <div class="buttonLayer" style="display: none;">
                     <input type="button" title="请录制0-8秒内视频" value="开启录制">
@@ -221,14 +244,15 @@
                     <input type="button" value="截取当前帧">
                     <input type="button" value="导出结果">
                 </div>
-                <div class="buttonLayer gifModify">
+                <div class="buttonLayer gifModify" style="display: none;">
                     <div id="mainControl">
                         <button value="添加字幕" class="mainControlBackground" title="添加视频字幕">添加字幕</button>
                         <button value="添加弹幕" title="为视频添加弹幕">添加弹幕</button>
                         <button value="添加文字" title="将文字加入视频中">添加文字</button>
                     </div>
                     <div id="captionControl"  style="display: none;">
-                        <button value="滚动弹幕" class="mainControlBackground">滚动弹幕</button>
+                        <button value="顺轴滚动弹幕">顺轴滚动弹幕</button>
+                        <button value="逆轴滚动弹幕" class="mainControlBackground">逆轴滚动弹幕</button>
                     </div>
                     <input type="text" placeholder="请输入文字内容">
                     <div id="selectFrame">
@@ -249,7 +273,7 @@
                         </div>
                         <div id="textSpeed1" title="5"  style="display: none;">
                             <label for="wz-speed">移动速度：</label>
-                            <input type="range" id="wz-speed" min="1" max="100" value="5" step="1" />
+                            <input type="range" id="wz-speed" min="5" max="200" value="15" step="2" />
                         </div>
                         <div id="bottomDistance" title="5">
                             <label for="wz-speed">底部距离：</label>
@@ -310,7 +334,7 @@
 		</div>
     </dialog>
 
-    <dialog id="saveToImage">
+    <dialog id="saveToImage" >
         <div class="model">
 			<div class="model-header">
 				<span>下载图片</span>
@@ -353,25 +377,38 @@
                 <div>
                     <div>文件名称</div>
                 </div>
-                <div id="inputTextpng">
+                <div id="inputTextgif">
                     <input type="text" placeholder="在此处输入文件名称">.gif
                 </div>
-                <div id="model-content-input">
+                <div id="model-content-GIFinput" >
+                    <div>
+                        <label for="save-z" title="1-60">图像帧数</label>
+                        <input type="number" id="saveGIF-z" min="1" value="60" />    
+                    </div>
                     <div>
                         <label for="save-w">图像宽度</label>
-                        <input type="number" id="save-w" min="0" value="0" disabled />    
+                        <input type="number" id="saveGIF-w" min="0" value="0" />    
                     </div>
                     <div>
                         <label for="save-h">图像高度</label>
-                        <input type="number" id="save-h" min="0" value="0" disabled />  
+                        <input type="number" id="saveGIF-h" min="0" value="0" />  
                     </div>    
                 </div>
             </div>
 			<div class="model-footer"> 
 				<button  value="cancel">取&nbsp;消</button>
-				<button>确&nbsp;定</button>
+				<button id="acceptGIF">确&nbsp;定</button>
 			</div>
 		</div>
+    </dialog>
+
+    <dialog id="speedProgress">
+        <div>
+            <img src="./fonts/2.gif" alt="" height="90px" width="90px">
+            <div>
+                视频处理中
+            </div>       
+        </div>
     </dialog>
 
     <template id="txbh-template">
@@ -587,5 +624,6 @@
 	</template>
 </body>
 <script src="./js/iconfont.js" defer></script>
+<script src="./js/layer/gif.js" defer></script>
 <script type="module" src="./js/bind.js" defer></script>
 </html>

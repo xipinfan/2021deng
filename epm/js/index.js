@@ -1,6 +1,6 @@
 //主类，用来初始化以及保存获取到的数据
 import {whiteBoard} from './constants/image.js';
-import {contentInit,protote,$,canvasDemoInit} from './constants/config.js'
+import {contentInit,protote,_$,$,canvasDemoInit,Get} from './constants/config.js'
 
 'use strict';
 
@@ -18,7 +18,7 @@ export class Tools{
   dataInit(){
     protote();  //设定原型链
     this.state = false;   //设定当前操作选项
-    this.stateType = '';    //设定当前为图像还是视频操作
+    this.stateType = 'image';    //设定当前为图像还是视频操作
 
     this.direction = [ 'upper','right','lower','left' ];  //设定操作画布朝向
     this.directionIndex = 0;  //设定操作画布当前朝向
@@ -33,7 +33,12 @@ export class Tools{
     this.ImageData = [];  //保存每一次绘制的图像
     this.forwardData = [];  //保存每一次回撤前的图像
     this.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };  //图像翻转坐标记录
+
+    this.nodeServerPort = '8059';   //保存当前服务器接口
+    this.imgIndex = 1;    //当前页面模板图片所在页数
+
     this.textDottedLine = { clinet:{x:0,y:0},clinetTo:{x:0,y:0} };  //文本的坐标记录
+    this.videoBarragePlot = { x: -1, y : -1 };    //弹幕画布坐标系统
     this.textValue = '';  //记录textarea输入框的输入内容
     this.typebullet = 'top';
     this.timeto = setInterval(null,1000);  //设定定时闪烁的提示
@@ -48,13 +53,18 @@ export class Tools{
     this.videoIndex = "video";   //判断当前canvas播放类型video表示映射视频，canvas表示映射图片数组
     this.saveto = [];   //保存视频截取的base64编码图片数组
     this.barrage = null;   //弹幕参数
-    this.barrageType = '顶部弹幕';
+    this.barrageType = '逆轴滚动弹幕';    //滚动形式
     this.barrageSpeed = 5;
     this.haole = false;
 
+    this.againImageData = '';
+
     this.rotateIF = false;
 
+    this.proportion = 1;    //视频与画布缩小比例
+
     this.barrageData = [];
+    this.barrForwardData = [];
 
     this.fontSize = 16;
     this.fontFamily = 'sans-serif';
@@ -74,6 +84,8 @@ export class Tools{
     this.videoInitial = { height:0, width:0 };
     this.fps = 60;
     this.bottomDistance = 5;  //字幕距离底边的距离
+
+    this.worker = {};
 
     this.tool = [  //工具初始化
       'pencil',   //画笔工具
@@ -135,8 +147,14 @@ export class Tools{
     this.canvasDemo.className = 'canvasStyle';
     this.canvasDemoCtx = canvasDemoInit(this.canvasDemo,contentW,contentH,'absolute','1');
 
+    //设置视频文字映射画布
+    this.canvasTextMapping = document.createElement('canvas');
+    this.canvasTextMapping.className = 'canvasStyle';
+    this.canvasTextMappingCtx = canvasDemoInit(this.canvasTextMapping,contentW,contentH,'absolute','0');
+
     parentNode.appendChild(this.canvasVideo);
     parentNode.appendChild(this.canvasBackground);
+    parentNode.appendChild(this.canvasTextMapping);
     parentNode.appendChild(this.canvasDemo);
     //parentNode.appendChild(this.canvasSubtitle);
 
@@ -167,6 +185,7 @@ export class Tools{
   
   //设置初始图片
   lableFound(){
+    const that = this;
     whiteBoard.call(this,this.canvasBackgroundCxt);
     whiteBoard.call(this,this.canvasVideoCtx);
     this.backstageVideo = document.createElement('video');
@@ -174,5 +193,18 @@ export class Tools{
     this.backstageVideo.style.zIndex = -20;
     $('#contains')[0].appendChild(this.backstageVideo);
     this.initialImg = new Image();
+
+    Get(`http://localhost:${this.nodeServerPort}/submit`, function(){
+      if(this.readyState === 4){
+          let expressionModel = JSON.parse(this.responseText) || [];
+          const selectModel = _$('select[title=默认模板]');
+          for(let i of expressionModel){
+            let optionModel = document.createElement('option');
+            optionModel.value = i.cate2;
+            optionModel.innerHTML = i.cate2;
+            selectModel.appendChild(optionModel);
+          }
+        }
+    })
   }
 }

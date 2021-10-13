@@ -1,6 +1,6 @@
 import * as images from './constants/image.js'
 import * as videos from './constants/video.js'
-import {$, _$, on, checkUrl,widthChange, displayChange} from './constants/config.js'
+import {$, _$, on, checkUrl,widthChange, displayChange, Get} from './constants/config.js'
 import {Tools} from './index.js'
 
 'use strict';
@@ -16,10 +16,37 @@ class Bind extends Tools{
   }
   baseButtonBind(){   //初始按键绑定
     const that = this;
-    const [warning, inputUrl, saveToImage, saveToGif] = Array.from($('dialog'));    //获取初始绑定
+    const [warning, inputUrl, saveToImage, saveToGif, speedProgress] = Array.from($('dialog'));    //获取初始绑定
     const panel = Array.from($('template'));    //template Dom绑定
     const mainnav = $('#main-nav>ul>li');    //侧边栏 Dom绑定
     const videoControl = $('#main-right>div');
+    const imgs = $('#gridLayer>img');
+    const ImageModel = _$('select[title=默认模板]');
+    const imageModelindex = _$('#turnPages>div');
+    
+    imgs.forEach((img)=>{
+      on(img, 'dragstart', function(e){
+        console.log(e.offsetX, e.offsetY)
+        e.dataTransfer.setData('url', e.target.src);
+        e.dataTransfer.setData('offset',{ x:e.offsetX,y:e.offsetY });
+      })
+    })
+    on(ImageModel, 'change', function(){
+      if(this.value !== '无'){
+        Get(`http://localhost:${that.nodeServerPort}/add?cate2=${this.value}`, function(){
+          if(this.readyState === 4){
+            imageModelindex.innerHTML = 1;
+            that.searchImage = JSON.parse(this.responseText) || [];
+            that.searchImage.map((e)=>{
+              e.image_url = e.path;
+              delete e.path;
+            })
+            _$('#turnPages>div').innerHTML = '1';
+            imgAssignment(0);
+          }
+        })
+      }
+    })
 
     $('.model-header>span.close, .model-footer>button[value=cancel]').forEach((el)=>{
       on(el,'click',function(){    //去除dialog弹出框
@@ -64,18 +91,22 @@ class Bind extends Tools{
     });
 
     on(_$('input[name=VideoFile]'), 'input', function(){    //导入视频
-      _$('input[name=ImageFile]').value = '';  //清除选定的图片
+      
       that.haole = false;  //设定视频只能就绪一次
       that.stateType = 'video';  //设定当前播放方式
       that.height -= 40;    //修改高度，因为和图片不同需要有一个进度条，所以得修改高度
+
+      _$('input[name=ImageFile]').value = '';  //清除选定的图片
       _$('#player').style.display = 'flex';   //拉起进度条
       _$('#content').style.height = that.height + 'px';  //修改画布容器的高度
+
       Array.from($('#contains>canvas')).forEach((index)=>{  //修改画布的高度
         index.height = that.height;
       }) 
+
       displayChange(videoControl[0],videoControl[2],videoControl[1]);  //修改右边栏布局
+
       videos.openCanvasVideo.call(that);  //将视频路径放到video标签上
-      
       
       _$('#main-panel').className = 'mainPanelOutAnima';   //将左边栏下放
       that.progressobarWidth = $('#progressobar')[0].getBoundingClientRect().width;  //保存进度条的长度
@@ -285,19 +316,41 @@ class Bind extends Tools{
           break;
         }
         case '撤销':{
-          on(index, 'click', function(){
-            images.updownImage.call(that, that.ImageData, that.forwardData);
+          on(index, 'click', ()=>{
+            if(this.stateType === 'image'){
+              images.updownImage.call(this, this.ImageData, this.forwardData);
+            }
+            else if(this.stateType === 'video'){
+              this.barrForwardData = videos.updownBarrage(this.barrageData, this.barrForwardData);
+              videos.pictureLoad.call(this);   //刷新画布
+            }
           })
           break;
         }
         case '下一步':{
-          on(index, 'click', function(){
-            images.updownImage.call(that, that.forwardData, that.ImageData);
+          on(index, 'click', ()=>{
+            if(this.stateType === 'image'){
+              images.updownImage.call(this, this.forwardData, this.ImageData);
+            }
+            else if(this.stateType === 'video'){
+              this.barrageData = videos.updownBarrage(this.barrForwardData, this.barrageData);
+              videos.pictureLoad.call(this);   //刷新画布
+            }
           })
           break;
         }
         case '保存':{
-          this.dialogBind(index, saveToImage);
+          on(index, 'click', ()=>{
+            this.canvasVideoCtx.fillRect(50,20,100,50);
+            this.canvasVideoCtx.save();
+            this.canvasVideoCtx.translate(this.canvasVideo.width/2, this.canvasVideo.height/2);
+            this.canvasVideoCtx.rotate(20*Math.PI/180);
+            this.canvasVideoCtx.fillStyle = '#000';
+            this.canvasVideoCtx.fillRect(50,20,100,50);
+            this.canvasVideoCtx.restore();  
+          })
+          //this.dialogBind(index, saveToImage);
+          
           break;
         }
       }
@@ -319,6 +372,72 @@ class Bind extends Tools{
         }
       })
     })
+
+    on(_$('input[value=搜索素材]'), 'click', ()=>{
+      const value = _$('#searchImage').value;
+      if(!value){
+        alert('请输入要搜索的关键字');
+        return;
+      }
+      ImageModel.value = '无';
+      Get( `http://localhost:${that.nodeServerPort}/item?keyword=${value}`, function(){
+        if(this.readyState === 4){
+          imageModelindex.innerHTML = 1;
+          that.searchImage = JSON.parse(this.responseText).data.list || [];
+          _$('#turnPages>div').innerHTML = '1';
+          while(that.searchImage.length && that.searchImage[0].width != undefined){
+            that.searchImage.shift();
+          }
+          imgAssignment(0);
+        }
+      })
+    })
+
+    on(_$('#turnPages'), 'click', (e)=>{
+
+      switch(e.target.name){
+        case 'homepage':{
+          this.imgIndex = 1;
+          imgAssignment((this.imgIndex - 1)*8);
+          break;
+        }
+        case 'previouspage':{
+          if(this.imgIndex > 1 ){
+            this.imgIndex -= 1;
+            imgAssignment((this.imgIndex - 1)*8);
+          }
+          break;
+        }
+        case 'nextpage':{
+          if(this.searchImage.length >= this.imgIndex*8){
+            this.imgIndex += 1;
+            imgAssignment((this.imgIndex - 1)*8);
+          }
+          break;
+        }
+        case 'lastpage':{
+          while(this.searchImage.length >= this.imgIndex*8){
+            this.imgIndex += 1;
+          }
+          imgAssignment((this.imgIndex - 1)*8);
+          break;
+        }
+      }
+      
+      imageModelindex.innerHTML = this.imgIndex;
+    })
+
+    function imgAssignment(ad){
+      imgs.forEach((e,index)=>{
+        try{
+          e.style.opacity = 1;
+          e.src = that.searchImage[index + ad].image_url;
+        }
+        catch{
+          e.style.opacity = 0;
+        }
+      })
+    }
   }
   videoBindInit(){
     let nodeState = false,  //当前是否按下鼠标
@@ -340,7 +459,8 @@ class Bind extends Tools{
       that.videoTimedisplay[1].innerHTML = videos.timeChange(this.duration);     //将视频总时长转换后显示
       
       that.backstageVideo.style.zIndex = 1001;    //将video设置在最上层
-      that.canvasDemo.style.zIndex = 1002; 
+      that.canvasTextMapping.style.zIndex = 1002; 
+      that.canvasDemo.style.zIndex = 1003; 
       that.backstageVideo.style.left = x + 'px';    //修改位置
       that.backstageVideo.style.top = y + 'px'; 
       that.backstageVideo.width = node.a;    //修改宽高
@@ -360,6 +480,13 @@ class Bind extends Tools{
       _$('#toggle>ul>li[title=工具初始化]').click();
     });
 
+    on(_$('#acceptGIF'), 'click', ()=>{
+      that.dialog.close();
+      if(that.videoIndex === 'canvas'){
+        videos.Recording.call(this);
+      }
+    })
+
     Array.from($('#player>svg')).forEach((e,index)=>{    //获取暂停和播放的图标
       on(e, 'click', function(){
         this.style.display = 'none';    //当前图标消失
@@ -367,17 +494,18 @@ class Bind extends Tools{
           if(that.backstageVideo.readyState === 4){    //视频准备就绪
           if(!index){    //判断当前为暂停键还是播放键，第一个为暂停键，index=0的非为true
             that.backstageVideo.pause();    //暂停
-            if(that.ed){
-                window.cancelAnimationFrame(that.ed);    //关闭
-            }
+            window.cancelAnimationFrame(that.ed);    //关闭
           }
           else{
-            that.backstageVideo.play();     //播放视频
             if(that.videoIndex === 'video'){
+              that.backstageVideo.play();     //播放视频
               videos.onloadOpenVideo.call(that,that.videoData.w,that.videoData.h);    //开启
             }
             else{
-              videos.recordPlay.call(that);
+              if(that.backstageVideo.currentTime < that.videoTimedate.end){
+                that.backstageVideo.play();     //播放视频
+                videos.recordPlay.call(that);  
+              }
             }
           }
         }
@@ -473,7 +601,6 @@ class Bind extends Tools{
         }
         case '截取当前帧':{
           on(e, 'click',function(){
-            const videoControl = $('#main-right>div');
 
             [that.width, that.height] = [that.imagedatasave.w, that.imagedatasave.h];   //修改保存的宽高
 
@@ -508,36 +635,39 @@ class Bind extends Tools{
         }
         case '导出结果':{
           on(e, 'click',async function(){
-            
+            //调用worker
+            that.worker = new Worker('./js/worker/videoworker.js');
+
             recordStatus = false;   //退出录制模式
             window.cancelAnimationFrame(that.ed);   //关闭cancelAnimationFrame
             that.backstageVideo.pause();   //暂停视频
             that.backstageVideo.style.display = 'none';
             that.backstageVideo.currentTime = that.videoTimedate.begin;   //修改视频的进度
+
             //通过promis和定时器切断来对视频进行分段截取图片，截取后的图片保存为图片数组进行修改
-            await (async ()=>{
-              for(let j = that.videoTimedate.begin ; j <= that.videoTimedate.end; j += 1/that.fps){
-                await new Promise((resolve)=>{
-                  setTimeout(()=>{
-                    console.log(j);
-                    that.backstageVideo.currentTime = j;
-                    that.canvasVideoTapeCtx.clearRect(0, 0, that.canvasVideoTape.width, that.canvasVideoTape.height); 
-                    that.canvasVideoTapeCtx.drawImage(that.backstageVideo, 0, 0, 
-                      that.videoInitial.width, that.videoInitial.height, 0, 0,
-                      that.canvasVideoTape.width, that.canvasVideoTape.height);  //设定录制canvas
-                    that.saveto.push(that.canvasVideoTape.toDataURL('image/png'));
-                    resolve();
-                  },0); 
-                })
-              }  
-            })();
-            that.saveto.push(that.saveto.unshift);
+            // await (async ()=>{
+            //   for(let j = that.videoTimedate.begin ; j <= that.videoTimedate.end; j += 1/that.fps){
+            //     await new Promise((resolve)=>{
+            //       that.backstageVideo.currentTime = j;
+            //       setTimeout(()=>{
+            //         Promise.all([
+            //           createImageBitmap(that.backstageVideo, 0, 0, that.videoInitial.width, that.videoInitial.height)
+            //         ]).then(function(sprites){
+            //           that.saveto.push(sprites[0]);
+            //           resolve();
+            //         })
+            //         resolve();
+            //       },0); 
+            //     })
+            //   }  
+            // })();
+            // that.saveto.push(that.saveto.unshift());
+
             that.backstageVideo.style.display = '';
             that.videoIndex = "canvas";
             videos.canvasGIF.call(that);
             videos.pictureLoad.call(that);
             displayChange(videoControl[0],videoControl[1],videoControl[2]);
-            videos.recordPlay.call(that);
           })
           break;
         }
@@ -557,7 +687,6 @@ class Bind extends Tools{
             _$('#bottomDistance').style.display = 'inline-block';
             if(that.videoIndex === 'canvas'){
               that.barrage = null;
-              //const 
             }
             break;
           }
@@ -574,25 +703,24 @@ class Bind extends Tools{
         }  
       })
     })
-
-    Array.from($('#captionControl>button')).forEach((e)=>{
-      on(e, 'click', function(){
-        Array.from($('#captionControl>button')).forEach((el)=>{ el.className = '' });
+    let caption1 = $('#captionControl>button');
+    caption1.forEach((e,index)=>{
+      on(e, 'click', function(event){
         this.className = 'mainControlBackground';
-        
-        switch(e.value){
-          case '顶部弹幕':{
+        caption1[Math.abs(index - 1)].className = '';
+        switch(this.value){
+          case '顺轴滚动弹幕':{
+            that.barrageType = '顺轴滚动弹幕';
             break;
           }
-          case '底部弹幕':{
-            break;
-          }
-          case '滚动弹幕':{
+          case '逆轴滚动弹幕':{
+            that.barrageType = '逆轴滚动弹幕';
             break;
           }
         }
       })
     })
+
     $('#selectFrameButton>button').forEach((e)=>{
       switch(e.value){
         case 'begin':{
@@ -622,72 +750,98 @@ class Bind extends Tools{
         switch(e.value){
           case '重新选择':{
             that.barrageData.pop();
-            that.controlnodeInit();
             for(let i in that.centralPoint){
               i = -1;
             }
+            that.toolCurrent = 'init';
             that.state = false;
+            that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
             videos.pictureLoad.call(that);   //刷新画布
+            that.canvasDemo.click();
             break;
           }
           case '重新录制':{
+            let remake = confirm("按下确认键重新录制视频");
+            if(remake === true){
+              displayChange(videoControl[0],videoControl[2],videoControl[1]);  //修改右边栏布局
+              that.videoIndex = "video";
+              that.videoTimedisplay[1].innerHTML = videos.timeChange(that.backstageVideo.duration);
+              that.videoTimedisplay[0].innerHTML = videos.timeChange(0);
+              that.backstageVideo.currentTime = 0;
+              that.barrageData.splice(0);
+              console.log(that.barrageData);
+              window.requestAnimationFrame(that.ed);
+              videos.onloadOpenVideo.call(that, this.backstageVideo);  
+            }
             break;
           }
           case '导出GIF文件':{
+            that.dialog = _$('#saveToGif');
+            that.dialog.showModal();
+            that.saveGifBind();
             break;
           }
         }  
         
         if(e.id === 'addFrame'){
+          if(that.barrageData.length !== 0&&that.barrageData[that.barrageData.length - 1].type === undefined){
+            alert('请先完成当前弹幕操作');
+            return;
+          }
           that.barrageValue = _$('.gifModify>input[type=text]').value;
           if(that.barrageValue.length === 0){
             alert('请输入需要添加的内容');
             return;
           }
-          // if(begin === -1){
-          //   alert('请先选择初始帧');
-          //   return;
-          // }
-          // if(end === -1){
-          //   alert('请先选择结束帧');
-          //   return;
-          // }
-          // if(begin > end){
-          //   alert('初始帧不能大于结束帧');
-          //   return;
-          // }
+          if(begin === -1){
+            alert('请先选择初始帧');
+            return;
+          }
+          if(end === -1){
+            alert('请先选择结束帧');
+            return;
+          }
+          if(begin > end){
+            alert('初始帧不能大于结束帧');
+            return;
+          }
+          const barrage = {
+            begin:begin,
+            end:end,
+            value:that.barrageValue,
+            fontWeight:that.fontWeight,
+            fontSize:that.fontSize,
+            fontFamily:that.fontFamily
+          }
           switch(videoTextType){
             case '字幕':{
-              const barrage = {
-                begin:begin,
-                end:end,
-                value:that.barrageValue,
-                type:'subtitle'
-              }
+              Object.assign(barrage, {
+                type:'subtitle',
+                bottomDistance:that.bottomDistance
+              })
               that.barrageData.push(barrage);
               videos.pictureLoad.call(that);   //刷新画布
               break;
             }
             case '弹幕':{
-              const barrage = {
-                begin:begin,
-                end:end,
-                value:that.barrageValue,
-                //type:'bulletChat'
-              }
-              that.toolCurrent = 'bulletChat';
-              that.state = true;
-              that.clinetChange(that.width/2, that.height/2,
-                that.width/2 + 200, that.height/2 + 100, that.barrageValue);
-              images.dottedBox.call(that, that.width/2, that.height/2,
-                that.width/2 + 200, that.height/2 + 100);    //虚线提示框
-              that.barrageData.push(barrage);
+              Textposition('bulletChat');
+              break;
+            }
+            case '文字':{
+              Textposition('barrageText')
               break;
             }
           }
-          // $('#selectFrame>span').forEach((el)=>{
-          //   el.innerHTML = '00:00:00';
-          // })
+
+          function Textposition( type ){
+            that.toolCurrent = type;
+            that.state = true;
+            [that.videoBarragePlot.x, that.videoBarragePlot.y] =
+              [ that.videoInitial.width/2, that.videoInitial.height/2 + parseInt(that.fontSize)]
+              
+            that.clinetChange();
+            that.barrageData.push(barrage);
+          }
         }
       })
     })
@@ -766,9 +920,6 @@ class Bind extends Tools{
         that.reduceWidth -= 1;    //回退标记
         this.style.display = 'none';
         mainPanelcontent.innerHTML = '';    //清除模板内容
-        $('.rotate').forEach((index)=>{    //去除所有的预设，例如旋转等操作按钮
-          index.className = 'nonec rotate';
-        })
         if(that.stateType === 'video'){    //当前为视频状态时
           that.toolInitTo();    //工具初始化
         }
@@ -807,8 +958,8 @@ class Bind extends Tools{
     on(this.canvasVideo, 'mousedown', function(e){
       if(!that.state)return;    //判断是否操作
       that.penstate = true;    //判定按下按钮
-      if(that.toolCurrent !== "bucket"){    //在油漆桶状态时，保存当前画布的数据
-        that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+      if(that.toolCurrent !== "bucket"){    //在不为油漆桶状态时，保存当前画布的数据
+        that.ImageData.push(that.canvasVideo.toDataURL('image/png', 1));    //记录canvas画布数据
       }
       switch(that.toolCurrent){
         case 'pen':{    //画笔是通过点击之后的点进行画圆，圆形的中点是两个点的中心
@@ -829,7 +980,7 @@ class Bind extends Tools{
           let color = _$('#yqt-color').value;    //获取选择的颜色
           let intensity = _$('#yqt-power').value;    //获取力度
           let ImageDate = that.canvasVideoCtx.getImageData(0,0,that.width,that.height);
-          that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+          that.ImageData.push(that.canvasVideo.toDataURL('image/png', 1));
           images.paintBucket(ImageDate, e.layerX, e.layerY, color, intensity);
           that.canvasVideoCtx.putImageData(ImageDate, 0, 0);
           break;
@@ -892,13 +1043,45 @@ class Bind extends Tools{
     //operation记录当前按下的点是否在操作区域内
     that.textareaInputBind(endplot);  //绑定textarea事件
 
+    on(_$('#content'),'dragover', function(e){
+      e.preventDefault();
+    })
+    
+    on(_$('#content'), 'drop', function(e){
+      e.preventDefault();
+      console.log(e.dataTransfer.getData('url'));
+      console.log(e.dataTransfer.getData('offset'));
+      console.log(e.layerX);
+      that.initialImg.src = e.dataTransfer.getData('url');
+      that.initialImg.onload = function(eve){
+        that.canvasDemo.style.zIndex = 1003;
+        console.log(this.height);
+        console.log(this.width);
+        [firstplot.x, firstplot.y, endplot.x, endplot.y] = 
+          [];
+        [that.imageRecord.w, that.imageRecord.h] = [this.width, this.height];
+        that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
+        that.canvasDemoCtx.drawImage(that.initialImg,0,0,that.imageRecord.w,that.imageRecord.h,
+          firstplot.x,firstplot.y,endplot.x - firstplot.x,endplot.y - firstplot.y);  
+        
+        images.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框
+      }
+    })
+
+    on(this.canvasDemo, 'click', ()=>{
+      if(this.toolCurrent === 'init'){    //整体初始化
+        controlnode = true;
+        [ firstplot.x, firstplot.y,endplot.x, endplot.y ] = [-1, -1, -1, -1];
+        this.toolCurrent = '';
+      }
+    })
+
     on(_$('.intercept'), 'click', function(){   //截取绑定函数
       if(that.toolCurrent === 'shear'){
         that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
-
-        images.updownImage.call(that, that.ImageData, that.forwardData);    //保存当前图片数据
+        that.canvasVideoCtx.putImageData(that.againImageData, 0, 0);
         images.shear.call(that, firstplot, endplot, shearplot);    //将基础画布上的所需要区域的图像映射到操作画布上
-
+        that.againImageData = '';
         that.canvasVideoCtx.clearRect(0,0,that.width, that.height);
         that.canvasVideoCtx.drawImage(that.canvasDemo,0,0);    //映射回去
         that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
@@ -921,6 +1104,10 @@ class Bind extends Tools{
         }
         else{    //判断矩形框四边
           stay = images.boundary(that.canvasDemo, e, firstplot, endplot);
+          if((that.toolCurrent === 'bulletChat'||that.toolCurrent === 'barrageText') && stay !== 'default'){
+            stay = 'core';
+            that.canvasDemo.style.cursor = 'move';
+          }
         }
         if(stay != "default"){    //当前在范围内时
           beginmobile.x = e.layerX;    //保存初始移动的点
@@ -930,7 +1117,7 @@ class Bind extends Tools{
         }
         else{
           clearInterval(that.timeto);    //关闭时间间隔
-          that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+          that.ImageData.push(that.canvasVideo.toDataURL('image/png', 1));    //记录canvas画布数据
           that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
           if(that.toolCurrent === 'image'){
             that.canvasVideoCtx.drawImage(that.initialImg,0,0,that.imageRecord.w,that.imageRecord.h,
@@ -940,46 +1127,68 @@ class Bind extends Tools{
             that.canvasDemo.style.zIndex = -1;    //将操作画布下放
             controlnode = true;
           }
-          if(that.toolCurrent === 'text'){
+          else if(that.toolCurrent === 'text'){
             images.textTool.call(that,that.textDottedLine, that.canvasVideoCtx, that.textValue, 0);    //绘制文字
             that.textValue = "";    //初始化
             that.textarea.value = "";
           }
-          if(that.toolCurrent === 'bulletChat'){    //弹幕保存
+          else if(that.toolCurrent === 'bulletChat'){    //弹幕保存
             const barrage = that.barrageData.pop();
+            let currentTime = that.backstageVideo.currentTime;
+            let barrSpeed = that.barrageSpeed;
+            if(that.barrageType === '顺轴滚动弹幕'){
+              barrSpeed = - barrSpeed;
+            }
             Object.assign(barrage, {    //设定状态
               type:'bulletChat',
               plot:{
-                x:firstplot.x,
-                y:firstplot.y
-              }
+                x:that.videoBarragePlot.x + (barrSpeed * ( currentTime - barrage.begin )),
+                y:that.videoBarragePlot.y
+              },
+              speed:barrSpeed
             })
+            that.toolCurrent = '';
+            that.state = false;
             that.barrageData.push(barrage);
+            controlnode = true;
+            videos.pictureLoad.call(that);   //刷新画布
+          }
+          else if(that.toolCurrent === 'barrageText'){
+            const barrage = that.barrageData.pop();
+            Object.assign(barrage, {    //设定状态
+              type:'barrageText',
+              plot:{
+                x:that.videoBarragePlot.x,
+                y:that.videoBarragePlot.y
+              },
+            })
+            that.toolCurrent = '';
+            that.state = false;
+            that.barrageData.push(barrage);
+            controlnode = true;
             videos.pictureLoad.call(that);   //刷新画布
           }
           else if(that.toolCurrent === 'shear'){    //剪切
-            new Promise((resolve, reject)=>{    //清除之前保存的状态
-              images.updownImage.call(that, that.ImageData, that.forwardData);
-              images.updownImage.call(that, that.ImageData, that.forwardData);
-              that.forwardData.pop();
-              that.forwardData.pop();
-              that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+            new Promise((resolve)=>{    //清除之前保存的状态
+              that.canvasVideoCtx.putImageData(that.againImageData, 0, 0);
+              that.againImageData = '';
               resolve();
-            }).then((value)=>{    //清除完成之后将操作画布映射上去
+            }).then(()=>{    //清除完成之后将操作画布映射上去
               images.shear.call(that, firstplot, endplot, shearplot);
               that.canvasVideoCtx.drawImage(that.canvasDemo,0,0);  
               that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
             }) 
           } 
-          else that.toolCurrentJudge(that.canvasVideoCtx, beginLine, endLine, firstplot, endplot);
-
-          that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
+          else that.toolCurrentJudge(that.canvasVideoCtx, beginLine, endLine, firstplot, endplot);          
+          //that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
           that.directionIndex = 0;    //设定翻转和点初始化
           that.centralPoint = { x1:-1 , y1:-1 , x2:-1 , y2:-1 };
         }
       }
     })
     on( this.canvasDemo, 'mouseup', function(e){
+
+      if(!that.state)return;
       if(that.penstate){
         endLine.x = e.layerX;
         endLine.y = e.layerY;
@@ -999,7 +1208,7 @@ class Bind extends Tools{
         if( that.toolCurrent === "shear" ){
           [shearplot.x1, shearplot.y1] = [ firstplot.x, firstplot.y ];
           [shearplot.x2, shearplot.y2] = [ endplot.x, endplot.y ];
-          that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
+          that.againImageData = that.canvasVideoCtx.getImageData(0,0,that.width, that.height );
           images.shear.call(that, firstplot, endplot, shearplot);
           [...that.jq] = [endplot.x - firstplot.x,endplot.y - firstplot.y,firstplot.x,firstplot.y]
           if(_$('#main-panel').style.display !== 'none' && _$('#main-panel-title').innerHTML === '剪切'){
@@ -1032,24 +1241,25 @@ class Bind extends Tools{
       that.penstate = false;
       operation = false;
     })
-    on( this.canvasDemo, 'mousemove', function(e){
+    on( this.canvasDemo, 'mousemove',function(e){
+
       if(!that.state)return;
-      if(that.toolCurrent === 'image' && controlnode){    //图片处理特殊判断
-        const node = images.contrast.call(that,that.imageRecord.w,that.imageRecord.h);
-        const x = that.width/2-node.a/2, y = that.height/2-node.b/2;
-        controlnode = false;
-        [firstplot.x, firstplot.y, endplot.x, endplot.y] = 
-          [ x, y, node.a + x, node.b + y];
-      }
-      if(that.toolCurrent === 'bulletChat' && controlnode){    //弹幕处理特殊判断
-        controlnode = false;
-        [firstplot.x, firstplot.y, endplot.x, endplot.y] = 
-          [ that.width/2, that.height/2, that.width/2 + 200, that.height/2 + 100];
-        
-        that.textDottedLine.clinet = { x:firstplot.x, y:firstplot.y };
-        that.textDottedLine.clinetTo = { x:endplot.x, y:endplot.y };
-      }
       if(controlnode){
+        if(that.toolCurrent === 'image'){    //图片处理特殊判断
+          const node = images.contrast.call(that,that.imageRecord.w,that.imageRecord.h);
+          const x = that.width/2-node.a/2, y = that.height/2-node.b/2;
+          controlnode = false;
+          [firstplot.x, firstplot.y, endplot.x, endplot.y] = 
+            [ x, y, node.a + x, node.b + y];
+        }
+        if(that.toolCurrent === 'bulletChat'||that.toolCurrent === 'barrageText'){    //弹幕处理特殊判断
+          controlnode = false;
+          [ firstplot.x, firstplot.y,endplot.x, endplot.y ] = 
+            [ that.textDottedLine.clinet.x, that.textDottedLine.clinet.y,
+              that.textDottedLine.clinetTo.x, that.textDottedLine.clinetTo.y  ];
+          
+        }
+
         if(!that.penstate)return;
         endLine.x = e.layerX;
         endLine.y = e.layerY;
@@ -1060,7 +1270,7 @@ class Bind extends Tools{
         that.toolCurrentJudge(that.canvasDemoCtx, beginLine, endLine, firstplot, endplot);
       }
       else{
-        if(!operation && that.centralPoint.x1 !== -1&&that.rotateIF ){    //当图形翻转了之后修改其坐标
+        if(!operation && that.centralPoint.x1 !== -1 && that.rotateIF ){    //当图形翻转了之后修改其坐标
           that.rotateIF = true;
           [ beginLine.x, beginLine.y ] = [that.centralPoint.x1, that.centralPoint.y1];
           [ endLine.x, endLine.y ] = [that.centralPoint.x2, that.centralPoint.y2];
@@ -1071,15 +1281,16 @@ class Bind extends Tools{
           images.mousePointLine(e, beginLine, endLine, that.canvasDemo);
         }
         else{
-          images.boundary(that.canvasDemo, e, firstplot, endplot);
+          let d1 = images.boundary(that.canvasDemo, e, firstplot, endplot);
+          if((that.toolCurrent === 'bulletChat'||that.toolCurrent === 'barrageText') && d1 !== 'default'){
+            that.canvasDemo.style.cursor = 'move';
+          }
         }
         if(operation){
-
           endmobile.x = e.layerX - beginmobile.x;
           endmobile.y = e.layerY - beginmobile.y;
           beginmobile.x = e.layerX;
           beginmobile.y = e.layerY;
-
           if(that.toolCurrent === 'line'){
 
             that.lineJudgment(stay,beginLine, endLine, endmobile);
@@ -1088,24 +1299,34 @@ class Bind extends Tools{
             images.lineBox.call(that, beginLine.x, beginLine.y, endLine.x , endLine.y); 
           }
           else{
+            if(that.toolCurrent !== 'bulletChat' && that.toolCurrent !== 'barrageText'){
+              that.directionJudgment(stay, firstplot, endplot, endmobile );
+            }
+            else{
+              if(stay === 'core'){
+                firstplot.x += endmobile.x;
+                firstplot.y += endmobile.y;
+                endplot.x += endmobile.x;
+                endplot.y += endmobile.y;
 
-            that.directionJudgment(stay, firstplot, endplot, endmobile );
+                that.videoBarragePlot.x += endmobile.x / that.proportion;
+                that.videoBarragePlot.y += endmobile.y / that.proportion;
+              }
+            }
+
             that.centralPoint = { x1:firstplot.x , y1:firstplot.y , x2:endplot.x , y2:endplot.y };
             if(that.toolCurrent === 'text'){
-              that.clinetChange(firstplot.x, firstplot.y, endplot.x, endplot.y, that.textValue)
+              that.clinetTextChange(firstplot.x, firstplot.y, endplot.x, endplot.y, that.textValue)
             }
-            else if(that.toolCurrent === 'bulletChat'){
-              that.clinetChange(firstplot.x, firstplot.y, endplot.x, endplot.y, that.barrageValue)
-              
-              images.dottedBox.call(that, firstplot.x, firstplot.y, endplot.x, endplot.y);    //虚线提示框
+            else if(that.toolCurrent === 'bulletChat'||that.toolCurrent === 'barrageText'){
+              that.canvasDemoCtx.clearRect(0,0,that.width,that.height);    //清除虚拟画布
+              that.clinetChange();
             }
             else if(that.toolCurrent === 'shear'){
               that.canvasDemoCtx.clearRect(0,0,that.width,that.height);
 
-              new Promise((resolve, reject)=>{
-                images.updownImage.call(that, that.ImageData, that.forwardData);
-                that.ImageData.push(that.canvasVideoCtx.getImageData(0,0,that.width,that.height));    //记录canvas画布数据
-                that.forwardData.pop();
+              new Promise( (resolve, reject)=>{
+                that.canvasVideoCtx.putImageData(that.againImageData, 0, 0);
                 resolve();
               }).then((value)=>{
                 images.shear.call(that, firstplot, endplot, shearplot);
@@ -1291,17 +1512,27 @@ class Bind extends Tools{
     return node;
   }
   dialogBind(index , event){
-    const that = this;
-    on(index, 'click', function(){
-      that.dialog = event;
-      that.dialog.showModal();
+    on(index, 'click', ()=>{
+      if(event.id === 'saveToGif' && (this.stateType === 'image' || this.videoIndex === 'video')){
+        alert('当前无法保存');
+        return;
+      }
+      this.dialog = event;
+      this.dialog.showModal();
       if(event.id === 'saveToImage'){
-        const canvasTemporarily = images.saveImagMapping.call(that);
+        const canvasTemporarily = images.saveImagMapping.call(this);
         _$('input[id=save-w]').value = canvasTemporarily.width;
         _$('input[id=save-h]').value = canvasTemporarily.height;
-        that.saveImageData = canvasTemporarily;
+        this.saveImageData = canvasTemporarily;
+      }
+      else if(event.id === 'saveToGif'){
+        this.saveGifBind();
       }
     });
+  }
+  saveGifBind(){
+    _$('#saveGIF-w').value = this.videoInitial.width;
+    _$('#saveGIF-h').value = this.videoInitial.height;
   }
   paintBrush(){
     const that = this;
@@ -1391,6 +1622,8 @@ class Bind extends Tools{
       this.mainpanelState = '';
       this.canvasVideo.style.cursor = "default";
       this.jq = Array.from({length:4},x=>0);
+      $('.rotate').forEach((index)=>{index.className = 'nonec rotate'});
+      _$('.intercept').className = 'nonec intercept';
     }
   }
 
@@ -1422,57 +1655,40 @@ class Bind extends Tools{
         endplot.y += endmobile.y;
         break;
       case "top":
+        if( Math.abs( firstplot.y + endmobile.y - endplot.y) <= 5  )return;
         firstplot.y += endmobile.y;
         break;
       case "lower":
+        if( Math.abs( endplot.y + endmobile.y - firstplot.y) <= 5  )return;
         endplot.y += endmobile.y;
         break;
       case "right":
+        if( Math.abs( endplot.x + endmobile.x - firstplot.x) <= 5  )return;
         endplot.x += endmobile.x;
         break;
       case "left":
+        if( Math.abs( firstplot.x + endmobile.x - endplot.x) <= 5  )return;
         firstplot.x += endmobile.x;
         break;
     }
     switch(this.direction[this.directionIndex]){
         case "upper":{    //当图形正向时
-          switch(stay){
-            case "topleft":
-              firstplot.x += endmobile.x;
-              firstplot.y += endmobile.y;
-              break;
-            case "lowerleft":
-              firstplot.x += endmobile.x;
-              endplot.y += endmobile.y;
-              break;
-            case "topright":
-              endplot.x += endmobile.x;
-              firstplot.y += endmobile.y;
-              break;
-            case "lowerright":
-              endplot.x += endmobile.x;
-              endplot.y += endmobile.y;
-              break;
-          }
+          this.toTurnTo(stay, firstplot, endplot, endmobile );
           break;
         }
         case "right":{    //当图形右向时
           switch(stay){
             case "topleft":
-              endplot.x += endmobile.x;
-              firstplot.y += endmobile.y; 
+              this.toTurnTo('topright', firstplot, endplot, endmobile );
               break;
             case "lowerleft":
-              endplot.x += endmobile.x;
-              endplot.y += endmobile.y;
+              this.toTurnTo('lowerright', firstplot, endplot, endmobile );
               break;
             case "topright":
-              firstplot.x += endmobile.x;
-              firstplot.y += endmobile.y; 
+              this.toTurnTo('topleft', firstplot, endplot, endmobile );
               break;
             case "lowerright":
-              endplot.x += endmobile.x;
-              firstplot.y += endmobile.y; 
+              this.toTurnTo('lowerleft', firstplot, endplot, endmobile );
               break;
           }
           break;  
@@ -1480,20 +1696,16 @@ class Bind extends Tools{
         case "lower":{    //当图形反向时
           switch(stay){
             case "topleft":
-              endplot.x += endmobile.x;
-              endplot.y += endmobile.y; 
+              this.toTurnTo('lowerright', firstplot, endplot, endmobile );
               break;
             case "lowerleft":
-              endplot.x += endmobile.x;
-              firstplot.y += endmobile.y;
+              this.toTurnTo('topright', firstplot, endplot, endmobile );
               break;
             case "topright":
-              firstplot.x += endmobile.x;
-              endplot.y += endmobile.y;
+              this.toTurnTo('lowerleft', firstplot, endplot, endmobile );
               break;
             case "lowerright":
-              firstplot.x += endmobile.x;
-              firstplot.y += endmobile.y;
+              this.toTurnTo('topleft', firstplot, endplot, endmobile );
               break;
           }
           break;
@@ -1501,26 +1713,51 @@ class Bind extends Tools{
         case "left":{     //当图形右向时
           switch(stay){
             case "topleft":
-              firstplot.x += endmobile.x;
-              endplot.y += endmobile.y; 
+              this.toTurnTo('lowerleft', firstplot, endplot, endmobile );
               break;
             case "lowerleft":
-              firstplot.x += endmobile.x;
-              firstplot.y += endmobile.y;
+              this.toTurnTo('topleft', firstplot, endplot, endmobile );
               break;
             case "topright":
-              endplot.x += endmobile.x;
-              endplot.y += endmobile.y;     
+              this.toTurnTo('lowerright', firstplot, endplot, endmobile );
               break;
             case "lowerright":
-              endplot.x += endmobile.x;
-              firstplot.y += endmobile.y; 
+              this.toTurnTo('topright', firstplot, endplot, endmobile );
               break;
           } 
           break;
         }
     }
   }
+  toTurnTo(node, firstplot, endplot, endmobile){
+    switch(node){
+      case "topleft":
+        if( Math.abs( firstplot.y + endmobile.y - endplot.y) <= 5  )return;
+        if( Math.abs( firstplot.x + endmobile.x - endplot.x) <= 5  )return;
+        firstplot.x += endmobile.x;
+        firstplot.y += endmobile.y;
+        break;
+      case "lowerleft":
+        if( Math.abs( endplot.y + endmobile.y - firstplot.y) <= 5  )return;
+        if( Math.abs( firstplot.x + endmobile.x - endplot.x) <= 5  )return;
+        firstplot.x += endmobile.x;
+        endplot.y += endmobile.y;
+        break;
+      case "topright":
+        if( Math.abs( firstplot.y + endmobile.y - endplot.y) <= 5  )return;
+        if( Math.abs( endplot.x + endmobile.x - firstplot.x) <= 5  )return;
+        endplot.x += endmobile.x;
+        firstplot.y += endmobile.y;
+        break;
+      case "lowerright":
+        if( Math.abs( endplot.y + endmobile.y - firstplot.y) <= 5  )return;
+        if( Math.abs( endplot.x + endmobile.x - firstplot.x) <= 5  )return;
+        endplot.x += endmobile.x;
+        endplot.y += endmobile.y;
+        break;
+    }
+  }
+
   toolCurrentJudge(canvas, beginLine, endLine, firstplot, endplot){
     this.canvasDemoCtx.clearRect(0,0,this.width,this.height);    //清除虚拟画布
     switch(this.toolCurrent){
@@ -1655,7 +1892,7 @@ class Bind extends Tools{
     this.centralPoint = { x1:beginLine.x , y1:beginLine.y , x2:endLine.x , y2:endLine.y };    //改变坐标
   }
 
-  clinetChange(x1, y1, x2, y2, value){
+  clinetTextChange(x1, y1, x2, y2, value){
     this.textDottedLine.clinet.x = x1;    //替换点坐标，使得定时器内按照新坐标进行绘制
     this.textDottedLine.clinet.y = y1;
     this.textDottedLine.clinetTo.x = x2;
@@ -1663,6 +1900,29 @@ class Bind extends Tools{
     this.canvasDemoCtx.clearRect(0,0,this.width,this.height);
     images.textTool.call(this, this.textDottedLine, this.canvasDemoCtx, value, 0);
     console.log(value);
+  }
+
+  clinetChange(){
+    const node = images.contrast.call(this,this.videoInitial.width,this.videoInitial.height);
+    const x1 = this.width/2 - node.a/2, y1 = this.height/2 - node.b/2;
+
+    this.canvasSubtitleCtx.clearRect(0,0,this.videoInitial.width,this.videoInitial.height);
+    this.canvasSubtitleCtx.save();
+    this.canvasSubtitleCtx.font = this.fontWeight + ' ' + this.fontSize + 'px ' + this.fontFamily;
+    
+    this.canvasSubtitleCtx.fillText(this.barrageValue, this.videoBarragePlot.x,
+      this.videoBarragePlot.y );
+    this.canvasDemoCtx.drawImage(this.canvasSubtitle, 0, 0,
+      this.videoInitial.width,this.videoInitial.height, x1, y1, node.a, node.b);
+    
+    this.textDottedLine.clinet.x = node.a /2 + x1;
+    this.textDottedLine.clinet.y = node.b /2 + y1;
+    this.textDottedLine.clinetTo.x = (this.canvasSubtitleCtx.measureText(this.barrageValue).width)
+      * this.proportion + this.textDottedLine.clinet.x;
+    this.textDottedLine.clinetTo.y = (parseInt(this.fontSize))*this.proportion + this.textDottedLine.clinet.y;
+
+    this.canvasSubtitleCtx.restore();
+
   }
 
   colorAssignment(color){

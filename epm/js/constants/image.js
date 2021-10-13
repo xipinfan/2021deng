@@ -9,6 +9,7 @@ export function contrast(a, b){  //等比例缩放图片
     a = a * 0.8;
     b = b * 0.8;
   }
+  this.proportion = a/node.a;
   [node.a, node.b] = [ Math.floor(a), Math.floor(b)];
   return node;
 }
@@ -19,7 +20,7 @@ export function imageinput(e, url){    //
   this.initialImg = new Image();
   this.initialImg.src = url || window.URL.createObjectURL(e.target.files[0]);
   this.backstageVideo.src = '';
-  //widthChange.call(this);
+
   that.initialImg.onload = function(){
     Board.call(that);
     const node = contrast.call(that,this.width,this.height);  //获取到缩放后的图片宽高
@@ -138,7 +139,7 @@ export function saveImagMapping(){  //图片保存函数
 
 export function saveImag(canvasTemporarily, name, url){
   const type = 'png';
-  let imgdata = url || canvasTemporarily.toDataURL(type);
+  let imgdata = url || canvasTemporarily.toDataURL(type, 1);
   const fixtype = function(type){
     type = type.toLocaleLowerCase().replace(/jpg/i, 'jpeg');
     const r = type.match(/png|jpeg|bmp|gif/)[0];
@@ -178,11 +179,15 @@ export function graffiti(x, y){  //绘制路径记录上一个点坐标，然后
   }
 }
 
-export function updownImage(x, y){  //保存图片的数据
-  if(x.length !== 0){
+export async function updownImage(x, y){  //保存图片的数据
+  if(x.length !== 0){   //通过保存base64编码的形式来保存图片数据，这样不会使得保存的数组过大
     const forwarddatenode = x.pop();
-    y.push(this.canvasVideoCtx.getImageData(0,0,this.width,this.height));  //将当前的canvas数据保存在数组里
-    this.canvasVideoCtx.putImageData(forwarddatenode, 0, 0);  //将当前canvas数据替换为数组中的canvas数据
+    y.push(this.canvasVideo.toDataURL('image/png', 1));  //将当前的canvas数据保存在数组里
+    const img = new Image();
+    img.src = forwarddatenode;
+    img.addEventListener('load', function(){
+      this.canvasVideoCtx.drawImage(img, 0, 0);  //将当前canvas数据替换为数组中的canvas数据
+    })
   }
 }
 
@@ -241,6 +246,7 @@ export function rgbToGray(r, g, b) { // 计算灰度值
 export function drawLine(x1, y1, x2, y2){   //连接路径
   this.canvasVideoCtx.save();
   this.canvasVideoCtx.beginPath();
+  console.log(this.pensize111)
   this.canvasVideoCtx.arc((x1+x2)/2, (y1+y2)/2, this.pensize111, 0, Math.PI*2, true);
   this.canvasVideoCtx.fill();
   this.canvasVideoCtx.stroke();

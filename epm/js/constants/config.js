@@ -52,6 +52,13 @@ export function canvasDemoInit(canvas, ...item){
   return canvas.getContext('2d');
 }
 
+export function Get(url, callback){
+  let xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = callback;
+  xhr.open('get', url, true);
+  xhr.send(null);
+}
+
 export function contentInit(content,contentH,contentW){
   content.style.height = contentH + 'px';
   content.style.width = contentW + 'px';

@@ -369,7 +369,8 @@ footer>span:first-child{
 .buttonLayer>input[type=button]:hover{
 	background-color: rgb(215, 215, 215);
 }
-.buttonLayer>input[type=text]{
+
+.buttonLayer>div>input[type=text]{
 	padding: 5px 10px;
 	font-size: 15px;
 	background-color: white;
@@ -379,6 +380,21 @@ footer>span:first-child{
 	outline:0;
 	margin-top: 7px;
 	margin-bottom: 12px;
+}
+
+.buttonLayer>div>select{
+	height: 38px;
+	font-size: 10px;
+	width: 35%;
+	border: 2px solid #eee;
+	outline:0;
+	margin-top: 7px;
+	margin-bottom: 12px;
+	text-align: center;
+}
+
+.buttonLayer>input[value="搜索素材"]{
+	margin-top: 3px;
 }
 .buttonLayer>input[value="搜索素材"],.buttonLayer>input[value="导出结果"]{
 	color: white;
@@ -391,6 +407,7 @@ footer>span:first-child{
 	display: flex;
 	font-size: 15px;
 	justify-content: space-between;
+	align-items: center;
 	margin-bottom: 12px;
 	width: 100%;
 }
@@ -405,6 +422,22 @@ footer>span:first-child{
 .buttonLayer>div>button:not(.mainControlBackground):hover{
 	background-color: rgb(215, 215, 215);
 }
+
+#gridLayer{
+	margin-top: 12px;
+	margin-left: 10px;
+	width: 100%;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	
+}
+#turnPages{
+	font-size: 18px;
+}
+#turnPages>button{
+	width: 50px;
+}
+
 #wz-style{
 	display: flex;
 	flex-direction:column;
@@ -514,7 +547,7 @@ dialog{
 	transform: translate(-50%,-50%);
 	background-color: var(--theme);
 	border-radius: 8px;
-    box-shadow: 0 0 3px gray;
+  box-shadow: 0 0 3px gray;
 	border : 0;
 }
 #warning>.model{
@@ -543,9 +576,9 @@ dialog{
 }
 .splitter-right{
 	display: block;
-    background: repeating-linear-gradient(-45deg,#414348 2px,#414348 2px,transparent 5px,transparent 6px);
-    height: 8px;
-    width: 100%;
+	background: repeating-linear-gradient(-45deg,#414348 2px,#414348 2px,transparent 5px,transparent 6px);
+	height: 8px;
+	width: 100%;
 }
 .model-content{
 	flex: 1;
@@ -591,8 +624,12 @@ dialog{
 	padding-left: 15px;
 }
 
-#saveToImage>.model, #saveToGif>.model{
+#saveToImage>.model{
 	height: 285px;
+	width: 320px;
+}
+#saveToGif>.model{
+	height: 300px;
 	width: 320px;
 }
 #saveToImage>.model>.model-content, #saveToGif>.model>.model-content{
@@ -600,25 +637,40 @@ dialog{
 	flex-direction: column;
 	justify-content: left;
 }
-#saveToImage>.model>.model-content>:first-child, 
+#saveToImage>.model>.model-content>:first-child,
 #saveToGif>.model>.model-content>:first-child{
 	padding-top: 10px;
 	padding-bottom: 5px;
 	height: 20px;
 }
+
 #saveToImage>.model>.model-content>:first-child>div, 
 #saveToGif>.model>.model-content>:first-child>div{
 	position: absolute;
 	left: 0px;
 	text-indent: 1em;
 }
-#inputTextpng{
+
+dialog[id=speedProgress]{
+	border: 0;
+	border-radius: 0;
+  box-shadow: 0 0 0;
+	background-color: #ffffff00;
+}
+
+#speedProgress>div{
+	display: flex; 
+	flex-direction: column;
+	align-items:center;
+}
+
+#inputTextpng,#inputTextgif{
 	display: flex;
 	width: 100%;
 	align-items: center;
 	justify-content: flex-start;
 }
-#inputTextpng>input{
+#inputTextpng>input,#inputTextgif>input{
 	padding: 4px 8px;
 	font-size: 15px;
 	background-color: white;
@@ -631,14 +683,14 @@ dialog{
 	margin-left: 5px;
 	margin-bottom: 7px;
 }
-#model-content-input{
+#model-content-input, #model-content-GIFinput{
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 	width: 81%;
 	margin-top: 5%;
 }
-#model-content-input>div{
+#model-content-input>div,#model-content-GIFinput>div {
 	display: flex;
 	width: 100%;
 	line-height: 30px;
@@ -646,6 +698,11 @@ dialog{
 	padding-top: 5px;
 	margin-left: -8%;
 }
+
+#model-content-GIFinput>div{
+	transform: translate(0, -8px);
+}
+
 #model-content-input>div>input{
 	transform: translate(-10px);
 }
@@ -667,10 +724,11 @@ dialog{
 	display: none;
 }
 #captionControl{
-	justify-content: center;
+	display: flex;
+	justify-content: space-around;
 }
 #captionControl>button{
-	width: 100%;
+	
 }
 .mainControlBackground{
 	/* width: 100%; */
